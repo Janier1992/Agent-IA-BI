@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { apiFetch } from "../apiClient";
 import { 
   GitBranch, 
   Terminal, 
@@ -101,7 +102,7 @@ export default function ETLWorkspacePanel({
     let active = true;
     async function fetchLogs() {
       try {
-        const res = await fetch("/api/etl-logs");
+        const res = await apiFetch("/api/etl-logs");
         if (res.ok && active) {
           const data = await res.json();
           if (data.logs && data.logs.length > 0) {
@@ -152,7 +153,7 @@ export default function ETLWorkspacePanel({
 
     try {
       // Trigger database initialization on backend
-      await fetch("/api/trigger-etl", {
+      await apiFetch("/api/trigger-etl", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ datasetName: metrics.activeDataset, userRequest: typologyConfig.title })

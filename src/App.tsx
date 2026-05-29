@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { apiFetch } from "./apiClient";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import DataHubPanel from "./components/DataHubPanel";
@@ -47,12 +48,12 @@ export default function App() {
 
   // Live consolidated metrics synchronized with the back-end
   const [metrics, setMetrics] = useState<DataMetrics>({
-    revenue: 14298000,
-    users: 82410,
-    riskScore: 12.4,
-    efficiency: 94.8,
-    warehouseDelay: true,
-    activeDataset: "Calidad_Inspecciones_Planta_Q3",
+    revenue: 0,
+    users: 0,
+    riskScore: 0,
+    efficiency: 0,
+    warehouseDelay: false,
+    activeDataset: "Ninguno",
   });
 
   const handleLoginSuccess = (user: { username: string; email: string }) => {
@@ -72,7 +73,7 @@ export default function App() {
     handleAddLog("Sistema", "Sesión finalizada por el usuario. Redirigiendo a Login.");
     
     // Clear chat logs in InsForge database
-    fetch("/api/clear-chat", { method: "POST" }).catch(err => console.error("Failed to clear chat on logout:", err));
+    apiFetch("/api/clear-chat", { method: "POST" }).catch(err => console.error("Failed to clear chat on logout:", err));
   };
 
   // Browser Notification Settings State
@@ -98,7 +99,7 @@ export default function App() {
 
   const handleGenerateDashboard = async (companyName?: string, businessDescription?: string) => {
     try {
-      const res = await fetch("/api/generate-dashboard", {
+      const res = await apiFetch("/api/generate-dashboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companyName, businessDescription })
@@ -138,7 +139,7 @@ export default function App() {
   useEffect(() => {
     async function fetchSystemStatus() {
       try {
-        const res = await fetch("/api/status");
+        const res = await apiFetch("/api/status");
         if (res.ok) {
           const data = await res.json();
           setApiConnected(data.apiConnected);
@@ -146,16 +147,16 @@ export default function App() {
             setMetrics(data.activeMetrics);
             prevMetricsRef.current = data.activeMetrics;
           }
-          
+
           if (data.apiConnected) {
-            handleAddLog("Sistema", "Conexión encriptada directa con el motor Google Gemini 3.5 establecida con éxito.");
+            handleAddLog("Sistema", "Conexión encriptada directa con el motor Google Gemini establecida con éxito.");
           } else {
-            handleAddLog("Alerta", "No se detectó GEMINI_API_KEY. Corriendo simuladores heurísticos locales.");
+            handleAddLog("Alerta", "Modo demo activo. Cargue un dataset para comenzar el análisis.");
           }
         }
 
         // Load persistent chat history from database
-        const historyRes = await fetch("/api/chat-history");
+        const historyRes = await apiFetch("/api/chat-history");
         if (historyRes.ok) {
           const historyData = await historyRes.json();
           if (historyData.history && historyData.history.length > 0) {
@@ -164,7 +165,7 @@ export default function App() {
         }
 
         // Load persistent logs from database
-        const logsRes = await fetch("/api/etl-logs");
+        const logsRes = await apiFetch("/api/etl-logs");
         if (logsRes.ok) {
           const logsData = await logsRes.json();
           if (logsData.logs && logsData.logs.length > 0) {
@@ -187,7 +188,7 @@ export default function App() {
   useEffect(() => {
     async function syncMetrics() {
       try {
-        const res = await fetch("/api/status");
+        const res = await apiFetch("/api/status");
         if (res.ok) {
           const data = await res.json();
           if (data.activeMetrics) {
@@ -337,7 +338,7 @@ export default function App() {
   const handleUpdateMetrics = async (updated: Partial<DataMetrics>) => {
     setMetrics(prev => ({ ...prev, ...updated }));
     try {
-      await fetch("/api/update-metrics", {
+      await apiFetch("/api/update-metrics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updated),
@@ -396,7 +397,7 @@ Si deseas ver cómo se realiza la limpieza y calibración en tiempo real en la c
     ]);
 
     // Update backend metric state asynchronously
-    fetch("/api/update-metrics", {
+    apiFetch("/api/update-metrics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newMetrics),
@@ -501,7 +502,7 @@ Listo, ya puedes ir al dashboard ejecutivo y mirar el indicador que hemos creado
     handleAddLog("Sistema", `${currentUser ? currentUser.username : "Director"} inició un nuevo canal de consulta estratégica.`);
     
     // Clear chat logs in InsForge database
-    fetch("/api/clear-chat", { method: "POST" }).catch(err => console.error("Failed to clear chat on new query:", err));
+    apiFetch("/api/clear-chat", { method: "POST" }).catch(err => console.error("Failed to clear chat on new query:", err));
   };
 
   if (!isLoggedIn) {

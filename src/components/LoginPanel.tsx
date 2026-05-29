@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { apiFetch } from "../apiClient";
 import { 
   User, 
   Lock, 
@@ -96,7 +97,7 @@ export default function LoginPanel({ onLoginSuccess }: LoginPanelProps) {
 
       setLoading(true);
       try {
-        const res = await fetch("/api/auth/login", {
+        const res = await apiFetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -137,7 +138,7 @@ export default function LoginPanel({ onLoginSuccess }: LoginPanelProps) {
 
       setLoading(true);
       try {
-        const res = await fetch("/api/auth/register", {
+        const res = await apiFetch("/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

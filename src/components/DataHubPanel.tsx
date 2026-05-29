@@ -16,7 +16,7 @@ import { DataMetrics, DataConnector, ValidationLog } from "../types";
 interface DataHubPanelProps {
   metrics: DataMetrics;
   onUpdateMetrics: (updated: Partial<DataMetrics>) => void;
-  onDatasetLoaded: (newMetrics: DataMetrics) => void;
+  onDatasetLoaded: (newMetrics: DataMetrics, processType?: string) => void;
   logs: ValidationLog[];
   onAddLog: (log: Omit<ValidationLog, "id">) => void;
   searchFilter: string;

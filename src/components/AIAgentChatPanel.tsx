@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { apiFetch } from "../apiClient";
 import { 
   Send, 
   Bot, 
@@ -72,7 +73,7 @@ export default function AIAgentChatPanel({
 
     try {
       // Direct call to our highly robust, server-side Express AI API
-      const response = await fetch("/api/chat", {
+      const response = await apiFetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -116,7 +117,7 @@ export default function AIAgentChatPanel({
       setMessages(prev => [...prev, {
         id: `${Date.now()}-error`,
         role: "model",
-        text: "He tenido una pequeña latencia en el canal seguro. Revisando almacenamiento temporal:\n\nEl análisis heurístico de la base de datos **Global_Sales_Master_Q3** sigue mostrando una integridad de datos fuerte del 98.4%. Recomiendo optimizar las existencias del corredor Noreste inmediatamente.",
+        text: "⚠️ Sin conexión con el servidor. Modo demo activo — explore los paneles de la plataforma mientras el servidor no esté disponible.",
         timestamp: "Ahora mismo",
       }]);
     } finally {
@@ -187,7 +188,7 @@ export default function AIAgentChatPanel({
                         type="button"
                         onClick={async () => {
                           try {
-                            await fetch("/api/trigger-etl", {
+                            await apiFetch("/api/trigger-etl", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({
