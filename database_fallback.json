@@ -1,0 +1,61 @@
+{
+  "metrics": {
+    "revenue": 14298000,
+    "users": 82410,
+    "riskScore": 12.4,
+    "efficiency": 94.8,
+    "warehouseDelay": true,
+    "activeDataset": "Calidad_Inspecciones_Planta_Q3"
+  },
+  "chatHistory": [],
+  "etlLogs": [
+    {
+      "id": "1",
+      "time": "22:46:11",
+      "category": "Sistema",
+      "message": "Agente de Ingestión de Calidad inicializado en memoria local."
+    },
+    {
+      "id": "2",
+      "time": "22:46:11",
+      "category": "Escaneo",
+      "message": "Escaneando registros de inspección, planillas y sensores de tolerancia en Colombia..."
+    },
+    {
+      "id": "3",
+      "time": "22:46:11",
+      "category": "Análisis",
+      "message": "Estructuras relacionales de aseguramiento y mejora continua creadas exitosamente."
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "username": "director",
+      "email": "director@planta.co",
+      "password": "4e73b22cf9017686524317ed5c088ef399c43d3df13f707f59d57a2b9044e138",
+      "createdAt": "2026-05-28T03:46:11.931Z"
+    },
+    {
+      "id": "2",
+      "username": "Camilo Perez",
+      "email": "jamosquera0518@gmail.com",
+      "password": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "createdAt": "2026-05-28T03:46:24.520Z"
+    },
+    {
+      "id": "3",
+      "username": "Andres Gomez",
+      "email": "andres.gomez@planta.co",
+      "password": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "createdAt": "2026-05-28T23:58:37.208Z"
+    },
+    {
+      "id": "4",
+      "username": "Juan Perez",
+      "email": "juan.perez@planta.co",
+      "password": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "createdAt": "2026-05-29T00:41:37.991Z"
+    }
+  ]
+}
