@@ -15,6 +15,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: Build Frontend
@@ -26,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -35,8 +38,10 @@ jobs:
       - name: Build Vite frontend
         run: npx vite build
         env:
-          # Prevent the build from failing due to missing server-side env vars
           VITE_APP_MODE: static
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
