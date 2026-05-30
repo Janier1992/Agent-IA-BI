@@ -155,6 +155,7 @@ export default function ExecutiveDashboardPanel({
   onClearHistory
 }: ExecutiveDashboardPanelProps) {
   const [timeRange, setTimeRange] = useState<"1M" | "6M" | "1A">("1M");
+  const [chartType, setChartType] = useState<"line" | "column">("line");
   const [allocationTrigger, setAllocationTrigger] = useState<Record<string, { value: number; recommendation: string; status: string }>>({});
 
   // Determine which metrics and title to display:
@@ -208,62 +209,60 @@ export default function ExecutiveDashboardPanel({
     }
   };
 
-  // Dynamic labels and format mapping based on dataset typology
   const getDomainMetricsConfig = (datasetName: string) => {
     const lowercase = (datasetName || "").toLowerCase();
     
     if (lowercase.includes("despachos") || lowercase.includes("logist") || lowercase.includes("cali")) {
       return {
-        revenueLabel: "COSTO ESTIMADO DE OPERACIONES",
-        revenueValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
-        usersLabel: "TRANSACCIONES PROCESADAS",
-        usersValue: `${displayMetrics.users.toLocaleString()} registros`,
-        riskLabel: "TASA DE INCIDENCIAS",
+        revenueLabel: "DESPACHOS EFECTUADOS",
+        revenueValue: `${displayMetrics.users.toLocaleString()} planillas`,
+        usersLabel: "VEHÍCULOS DESPACHADOS",
+        usersValue: `${Math.round(displayMetrics.users / 580)} camiones`,
+        riskLabel: "INCIDENCIAS EN TRÁNSITO",
         riskValue: `${displayMetrics.riskScore}%`,
         riskStatus: displayMetrics.riskScore > 20 ? "Alerta" : "Estable",
-        efficiencyLabel: "EFICIENCIA DE DESPACHOS",
+        efficiencyLabel: "ENTREGAS A TIEMPO (SLA)",
         efficiencyValue: `${displayMetrics.efficiency}%`,
         trendRevenue: "logistics"
       };
     }
     if (lowercase.includes("medellin") || lowercase.includes("mejora") || lowercase.includes("espesor")) {
       return {
-        revenueLabel: "AHORRO ESTIMADO PROYECTADO",
-        revenueValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
-        usersLabel: "MUESTRAS DE SERVICIO",
-        usersValue: `${displayMetrics.users.toLocaleString()} lecturas`,
-        riskLabel: "LATENCIA / ERROR",
+        revenueLabel: "LECTURAS REGISTRADAS",
+        revenueValue: `${displayMetrics.users.toLocaleString()} muestras`,
+        usersLabel: "SENSORES RECALIBRADOS",
+        usersValue: `${Math.round(displayMetrics.revenue / 1200000)} calibraciones`,
+        riskLabel: "DESVIACIÓN DE ESPESOR",
         riskValue: `${displayMetrics.riskScore}%`,
         riskStatus: displayMetrics.riskScore > 10 ? "Alerta" : "Estable",
-        efficiencyLabel: "NIVEL DE CUMPLIMIENTO SLA",
+        efficiencyLabel: "EFICIENCIA GLOBAL OEE",
         efficiencyValue: `${displayMetrics.efficiency}%`,
         trendRevenue: "production"
       };
     }
     if (lowercase.includes("colombia") || lowercase.includes("retornos") || lowercase.includes("garantias")) {
       return {
-        revenueLabel: "COSTO TOTAL DE GARANTÍAS",
-        revenueValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
-        usersLabel: "RECLAMACIONES DE CLIENTE",
-        usersValue: `${displayMetrics.users.toLocaleString()} reclamos`,
+        revenueLabel: "RECLAMACIONES PROCESADAS",
+        revenueValue: `${displayMetrics.users.toLocaleString()} reclamos`,
+        usersLabel: "COSTO TOTAL DE GARANTÍAS",
+        usersValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
         riskLabel: "FACTOR DE RETORNO PPM",
         riskValue: `${displayMetrics.riskScore}%`,
         riskStatus: displayMetrics.riskScore > 15 ? "Crítica" : "Bajo Control",
-        efficiencyLabel: "TASA DE CONFORMIDAD GENERAL",
+        efficiencyLabel: "EFICACIA DE RESOLUCIÓN",
         efficiencyValue: `${displayMetrics.efficiency}%`,
         trendRevenue: "performance"
       };
     }
-    // Default / General Quality Control Bogotá
     return {
-      revenueLabel: "RENDIMIENTO GENERAL DE INGRESOS",
-      revenueValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
-      usersLabel: "REGISTROS DE INGESTA TOTAL",
-      usersValue: `${displayMetrics.users.toLocaleString()} muestras`,
-      riskLabel: "FACTOR DE RIESGO INTEGRAL",
+      revenueLabel: "INSPECCIONES REALIZADAS",
+      revenueValue: `${displayMetrics.users.toLocaleString()} muestras`,
+      usersLabel: "ACCIONES CORRECTIVAS",
+      usersValue: `${Math.round(displayMetrics.revenue / 330000)} reportes`,
+      riskLabel: "TASA DE NO CONFORMIDAD",
       riskValue: `${displayMetrics.riskScore}%`,
       riskStatus: displayMetrics.riskScore > 15 ? "Crítica" : "Bajo Control",
-      efficiencyLabel: "EFICIENCIA GLOBAL OPERATIVA",
+      efficiencyLabel: "TASA DE CONFORMIDAD SLA",
       efficiencyValue: `${displayMetrics.efficiency}%`,
       trendRevenue: "performance"
     };
@@ -796,100 +795,169 @@ export default function ExecutiveDashboardPanel({
               </h3>
             </div>
             
-            {/* Time controls */}
-            <div className="flex gap-1 bg-[#0b1326] p-1 rounded-lg">
-              {(["1M", "6M", "1A"] as const).map((r) => (
+            {/* Time range and Visualisation switchers */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex gap-1 bg-[#0b1326] p-1 rounded-lg">
                 <button
-                  key={r}
-                  onClick={() => setTimeRange(r)}
-                  className={`px-3 py-1 rounded text-xs transition-all ${
-                    timeRange === r 
+                  onClick={() => setChartType("line")}
+                  className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all whitespace-nowrap ${
+                    chartType === "line" 
                       ? "bg-[#2a5ee8] text-white" 
                       : "text-[#c3c5d7] hover:text-[#dae2fd]"
                   }`}
                 >
-                  {r}
+                  Tendencia (Líneas)
                 </button>
-              ))}
+                <button
+                  onClick={() => setChartType("column")}
+                  className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all whitespace-nowrap ${
+                    chartType === "column" 
+                      ? "bg-[#2a5ee8] text-white" 
+                      : "text-[#c3c5d7] hover:text-[#dae2fd]"
+                  }`}
+                >
+                  Distribución (Columnas)
+                </button>
+              </div>
+
+              <div className="flex gap-1 bg-[#0b1326] p-1 rounded-lg">
+                {(["1M", "6M", "1A"] as const).map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setTimeRange(r)}
+                    className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all ${
+                      timeRange === r 
+                        ? "bg-[#2a5ee8] text-white" 
+                        : "text-[#c3c5d7] hover:text-[#dae2fd]"
+                    }`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Forecast curve rendering with overlay details */}
-          <div className="flex-1 relative p-6 flex items-end min-h-[340px]">
-            {/* Horizontal line grid */}
-            <div className="absolute inset-6 flex flex-col justify-between pointer-events-none opacity-10">
-              <div className="h-px w-full bg-white"></div>
-              <div className="h-px w-full bg-white"></div>
-              <div className="h-px w-full bg-white"></div>
-              <div className="h-px w-full bg-white"></div>
-              <div className="h-px w-full bg-white"></div>
-            </div>
-
-            {/* SVG Plot vectors */}
-            <div className="w-full h-full relative z-10 pt-2 pb-6">
-              <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 320">
-                {/* Historical spline */}
-                <path 
-                  d="M0,280 L120,240 L260,260 L400,180 L520,220 L640,140" 
-                  fill="none" 
-                  stroke="#b6c4ff" 
-                  strokeLinecap="round" 
-                  strokeWidth="3.5" 
-                />
-                {/* AI Projection spline */}
-                <path 
-                  d="M640,140 L740,90 L850,110 L940,40 L1000,20" 
-                  fill="none" 
-                  stroke="#4edea3" 
-                  strokeDasharray="8 4" 
-                  strokeLinecap="round" 
-                  strokeWidth="3.5" 
-                />
-                
-                {/* Highlight node */}
-                <circle cx="640" cy="140" fill="#0b1326" r="6" stroke="#4edea3" strokeWidth="3" />
-                
-                {/* Trend gradient mapping */}
-                <path 
-                  d="M0,280 L120,240 L260,260 L400,180 L520,220 L640,140 L740,90 L850,110 L940,40 L1000,20 L1000,320 L0,320 Z" 
-                  fill="url(#chartGrad)" 
-                  opacity="0.08" 
-                />
-                
-                <defs>
-                  <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#4edea3" />
-                    <stop offset="100%" stopColor="transparent" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            {/* Float Legends */}
-            <div className="absolute top-6 right-6 flex flex-col gap-2 bg-[#131b2e]/90 p-3 rounded-lg border border-white/10 text-[11px]">
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-1 bg-[#b6c4ff] rounded-full"></div>
-                <span className="text-[#c3c5d7]">Actuales Históricos</span>
+          {/* Forecast curve or Columns rendering */}
+          {chartType === "line" ? (
+            <div className="flex-1 relative p-6 flex items-end min-h-[340px] animate-fade-in">
+              {/* Horizontal line grid */}
+              <div className="absolute inset-6 flex flex-col justify-between pointer-events-none opacity-10">
+                <div className="h-px w-full bg-white"></div>
+                <div className="h-px w-full bg-white"></div>
+                <div className="h-px w-full bg-white"></div>
+                <div className="h-px w-full bg-white"></div>
+                <div className="h-px w-full bg-white"></div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-1 bg-[#4edea3] rounded-full border-dashed border-t-2 border-b-2"></div>
-                <span className="text-[#c3c5d7]">Pronóstico de IA</span>
+
+              {/* SVG Plot vectors */}
+              <div className="w-full h-full relative z-10 pt-2 pb-6">
+                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 320">
+                  {/* Historical spline */}
+                  <path 
+                    d="M0,280 L120,240 L260,260 L400,180 L520,220 L640,140" 
+                    fill="none" 
+                    stroke="#b6c4ff" 
+                    strokeLinecap="round" 
+                    strokeWidth="3.5" 
+                  />
+                  {/* AI Projection spline */}
+                  <path 
+                    d="M640,140 L740,90 L850,110 L940,40 L1000,20" 
+                    fill="none" 
+                    stroke="#4edea3" 
+                    strokeDasharray="8 4" 
+                    strokeLinecap="round" 
+                    strokeWidth="3.5" 
+                  />
+                  
+                  {/* Highlight node */}
+                  <circle cx="640" cy="140" fill="#0b1326" r="6" stroke="#4edea3" strokeWidth="3" />
+                  
+                  {/* Trend gradient mapping */}
+                  <path 
+                    d="M0,280 L120,240 L260,260 L400,180 L520,220 L640,140 L740,90 L850,110 L940,40 L1000,20 L1000,320 L0,320 Z" 
+                    fill="url(#chartGrad)" 
+                    opacity="0.08" 
+                  />
+                  
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#4edea3" />
+                      <stop offset="100%" stopColor="transparent" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              {/* Float Legends */}
+              <div className="absolute top-6 right-6 flex flex-col gap-2 bg-[#131b2e]/90 p-3 rounded-lg border border-white/10 text-[11px]">
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-1 bg-[#b6c4ff] rounded-full"></div>
+                  <span className="text-[#c3c5d7]">Actuales Históricos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-1 bg-[#4edea3] rounded-full border-dashed border-t-2 border-b-2"></div>
+                  <span className="text-[#c3c5d7]">Pronóstico de IA</span>
+                </div>
+              </div>
+
+              {/* Bottom time stamps */}
+              <div className="absolute bottom-2 left-6 right-6 flex justify-between font-mono text-[10px] text-[#8d90a0]">
+                <span>ENE</span>
+                <span>FEB</span>
+                <span>MAR</span>
+                <span>ABR</span>
+                <span>MAY (PRESENTE)</span>
+                <span>JUN</span>
+                <span>AGO</span>
+                <span>SEP</span>
+                <span>OCT</span>
               </div>
             </div>
+          ) : (
+            <div className="flex-1 relative p-6 flex items-end min-h-[340px] animate-fade-in w-full">
+              {/* Horizontal line grid */}
+              <div className="absolute inset-6 flex flex-col justify-between pointer-events-none opacity-10">
+                <div className="h-px w-full bg-white"></div>
+                <div className="h-px w-full bg-white"></div>
+                <div className="h-px w-full bg-white"></div>
+                <div className="h-px w-full bg-white"></div>
+                <div className="h-px w-full bg-white"></div>
+              </div>
 
-            {/* Bottom time stamps */}
-            <div className="absolute bottom-2 left-6 right-6 flex justify-between font-mono text-[10px] text-[#8d90a0]">
-              <span>ENE</span>
-              <span>FEB</span>
-              <span>MAR</span>
-              <span>ABR</span>
-              <span>MAY (PRESENTE)</span>
-              <span>JUN</span>
-              <span>AGO</span>
-              <span>SEP</span>
-              <span>OCT</span>
+              {/* Column/Bar chart rendering */}
+              <div className="w-full h-full relative z-10 pt-4 pb-6 flex items-end justify-around px-2 sm:px-8 min-h-[280px]">
+                {displayAllocation.map((item, index) => {
+                  const heightPercent = Math.max(25, Math.min(95, (item.value / 45000000) * 100));
+                  return (
+                    <div key={index} className="flex flex-col items-center justify-end h-full w-[28%] group relative">
+                      {/* Neon value tooltip on hover */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-[#0f172a]/95 border border-[#4edea3]/40 px-2 py-1 rounded text-[10px] text-white font-mono absolute bottom-[105%] pointer-events-none shadow-2xl z-20 whitespace-nowrap">
+                        $ {item.value.toLocaleString()} COP
+                      </div>
+                      
+                      {/* Column bar */}
+                      <div 
+                        className="w-full rounded-t-lg bg-gradient-to-t from-[#2a5ee8]/25 to-[#2a5ee8]/50 border-t border-x border-[#b6c4ff]/40 group-hover:from-[#2a5ee8]/50 group-hover:to-[#4edea3]/55 group-hover:border-[#4edea3] transition-all duration-300 relative shadow-[0_0_20px_rgba(42,94,232,0.03)] group-hover:shadow-[0_0_20px_rgba(78,222,163,0.15)] flex items-center justify-center font-mono font-bold"
+                        style={{ height: `${heightPercent}%` }}
+                      >
+                        {/* ROI Label embedded inside bar */}
+                        <span className="text-[9px] sm:text-[10px] text-white/90 transform -rotate-90 sm:rotate-0 select-none">
+                          +{item.roi}% ROI
+                        </span>
+                      </div>
+                      
+                      {/* Category label below column */}
+                      <p className="text-[9px] sm:text-[10px] text-[#c3c5d7] font-semibold mt-3 text-center truncate max-w-full uppercase tracking-wider group-hover:text-white transition-colors duration-150" title={item.category}>
+                        {item.category.split(" ").slice(-2).join(" ")}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Autonomous AI Insights Column (4 Columns) */}
