@@ -197,7 +197,7 @@ export default function ETLWorkspacePanel({
   };
 
   return (
-    <div className="flex flex-col flex-1 h-full overflow-y-auto lg:overflow-hidden p-4 sm:p-6 space-y-6 w-full">
+    <div className="flex flex-col flex-1 h-full overflow-y-auto p-4 sm:p-6 space-y-6 w-full scrollbar-thin">
       
       {/* Visual Step-by-Step ETL Progress Bar Card */}
       <section className="bg-[#131b2e]/60 border border-white/10 rounded-xl p-5 shadow-2xl relative overflow-hidden shrink-0 animate-in fade-in duration-200">
@@ -273,9 +273,9 @@ export default function ETLWorkspacePanel({
       </section>
 
       {/* Central Content Area (Workspace map & active agents side list) */}
-      <div className="flex-1 flex flex-col xl:flex-row overflow-hidden gap-6">
+      <div className="flex-shrink-0 flex flex-col xl:flex-row gap-6">
         {/* Flow visual editor representation */}
-        <section className="flex-1 relative bg-[#060e20] border border-white/10 rounded-xl overflow-x-auto overflow-y-hidden p-6 flex flex-col justify-between shadow-2xl min-h-[380px] scrollbar-thin">
+        <section className="flex-1 relative bg-[#060e20] border border-white/10 rounded-xl overflow-x-auto p-6 flex flex-col justify-between shadow-2xl min-h-[380px] scrollbar-thin">
           <div className="min-w-[750px] h-full flex flex-col justify-between relative flex-1">
             <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, #b6c4ff 1.5px, transparent 1.5px)", backgroundSize: "32px 32px" }}></div>
             

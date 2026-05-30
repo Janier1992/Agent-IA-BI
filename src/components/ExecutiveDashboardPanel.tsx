@@ -27,6 +27,121 @@ interface ExecutiveDashboardPanelProps {
   onClearHistory: () => void;
 }
 
+const getDomainAllocation = (datasetName: string): AssetAllocation[] => {
+  const lowercase = (datasetName || "").toLowerCase();
+  if (lowercase.includes("despachos") || lowercase.includes("logist") || lowercase.includes("cali")) {
+    return [
+      { category: "Optimización de Rutas de Despacho Cali", value: 45000000, roi: 18.5, recommendation: "Implementar ruteo dinámico", status: "ESTABLE" },
+      { category: "Sistemas de Monitoreo de Cadena de Frío", value: 12000000, roi: 24.2, recommendation: "Control autónomo 24/7", status: "AJUSTAR" },
+      { category: "Renegociación de Tarifas de Transporte", value: 28000000, roi: 14.8, recommendation: "Monitorear fletes terrestres", status: "ESTRATÉGICO" },
+    ];
+  }
+  if (lowercase.includes("medellin") || lowercase.includes("mejora") || lowercase.includes("espesor")) {
+    return [
+      { category: "Recalibración de Sensores de Espesor", value: 35000000, roi: 22.4, recommendation: "Programar ajustes semanales", status: "ESTABLE" },
+      { category: "Automatización de Mezcla de Polímero", value: 15000000, roi: 28.5, recommendation: "Integrar al sistema SCADA", status: "AJUSTAR" },
+      { category: "Auditoría de Mermas de Extrusión", value: 22000000, roi: 16.1, recommendation: "Auditar desperdicios Planta 2", status: "ESTRATÉGICO" },
+    ];
+  }
+  if (lowercase.includes("colombia") || lowercase.includes("retornos") || lowercase.includes("garantias")) {
+    return [
+      { category: "Auditoría de Empaque y Embalaje", value: 40000000, roi: 16.8, recommendation: "Cambiar proveedor de cartón", status: "ESTABLE" },
+      { category: "Sistema de Trazabilidad de Garantías", value: 18000000, roi: 25.4, recommendation: "Integrar con CRM corporativo", status: "AJUSTAR" },
+      { category: "Análisis de Causa-Raíz en Planta", value: 30000000, roi: 15.2, recommendation: "Inspecciones de soldadura aleatorias", status: "ESTRATÉGICO" },
+    ];
+  }
+  return [
+    { category: "Capacitación de Personal de Soldadura", value: 45000000, roi: 18.5, recommendation: "Mantener turnos rotativos", status: "ESTABLE" },
+    { category: "Optimización de Instrumentos de Medida", value: 12000000, roi: 24.2, recommendation: "Calibración automática en caliente", status: "AJUSTAR" },
+    { category: "Auditoría Externa de Tolerancias Planta Bogotá", value: 28000000, roi: 14.8, recommendation: "Monitorear calibradores", status: "ESTRATÉGICO" },
+  ];
+};
+
+const getDomainAnalysisConfig = (datasetName: string) => {
+  const lowercase = (datasetName || "").toLowerCase();
+  
+  if (lowercase.includes("despachos") || lowercase.includes("logist") || lowercase.includes("cali")) {
+    return {
+      title: "INFORME OPERATIVO DE LOGÍSTICA Y DESPACHOS",
+      subtitle: "Strategist AI - Optimización de Distribución y Cadena de Suministro",
+      biTitle: "📊 1. Perspectiva de Inteligencia de Distribución:",
+      biText: "Tras completar la normalización del pipeline ETL de despachos en Cali, se consolidó la consistencia y trazabilidad de los contenedores de carga y tiempos de estibación. La remoción de incidencias en embalaje y averías de transporte mitiga costos de reprocesamiento logístico y asegura el nivel de servicio.",
+      dsTitle: "🔬 2. Hallazgos de Ingeniería de Datos y Despachos:",
+      dsText: "El análisis heurístico de planillas de despacho en InsForge detectó redundancias causadas por el reenvío de estibas dañadas. Al normalizar y depurar estos registros en el motor PostgreSQL, la tasa de incidencias se estabilizó de forma real, resolviendo completamente las alertas de retraso de almacén.",
+      conclusionTitle: "⚙️ 3. Conclusión de Rendimiento de Transportes:",
+      conclusionText: "Se recomienda enfáticamente automatizar el control térmico de contenedores y renegociar las tarifas con transportistas locales. Estas acciones reducirán el costo de no calidad logística en un 18.5% estimado.",
+      insights: [
+        "Análisis del Dataset: Verificación completa de registros de despachos y cadena de frío en InsForge. Se eliminaron duplicados de planillas.",
+        "Optimización de Almacenamiento: Purgado automático de registros brutos de transporte para liberar recursos.",
+        "Acción Directiva Recomendada: Mitigar la tasa de incidencias mediante rutas de despacho alternativas y calibración de termómetros."
+      ]
+    };
+  }
+  if (lowercase.includes("medellin") || lowercase.includes("mejora") || lowercase.includes("espesor")) {
+    return {
+      title: "INFORME TÉCNICO DE ESPESORES Y EXTRUSIÓN",
+      subtitle: "Strategist AI - Control de Espesores y Mejora Continua en Planta",
+      biTitle: "📊 1. Perspectiva de Consistencia del Espesor:",
+      biText: "El procesamiento del pipeline ETL de sensores de extrusión en Medellín resolvió las lecturas nulas en la medición de película plástica. La alineación de consistencias a nivel relacional garantiza un control de calidad estadístico robusto y reduce mermas de materia prima.",
+      dsTitle: "🔬 2. Hallazgos de Ciencia de Datos en Sensores:",
+      dsText: "El escaneo de variables físicas detectó y corrigió desviaciones espontáneas en sensores descalibrados. Al aplicar calibración de tolerancias en la base de datos local, la conformidad del espesor aumentó al 98.6%, eliminando mermas de extrusión.",
+      conclusionTitle: "⚙️ 3. Conclusión y Calibración de Sensores:",
+      conclusionText: "Se aconseja incorporar sensores de espesor autónomos con auto-curación programada. Este plan de calibración proyecta un incremento del roi de extrusión en un 24.2%.",
+      insights: [
+        "Análisis del Dataset: Verificación e imputación heurística de lecturas de espesores nulas en la base de datos.",
+        "Optimización de Almacenamiento: Registros de sensores brutos optimizados e historiales purgados exitosamente.",
+        "Acción Directiva Recomendada: Realizar auditorías de sensores mensuales para asegurar la consistencia del OEE de extrusión."
+      ]
+    };
+  }
+  if (lowercase.includes("colombia") || lowercase.includes("retornos") || lowercase.includes("garantias")) {
+    return {
+      title: "INFORME DE AUDITORÍA DE GARANTÍAS Y RECLAMOS",
+      subtitle: "Strategist AI - Auditoría de Devoluciones y Aseguramiento Nacional",
+      biTitle: "📊 1. Perspectiva de Gestión de Garantías Nacional:",
+      biText: "El pipeline ETL resolvió las discrepancias en los códigos de retorno y vinculó las reclamaciones con los lotes de producción históricos de forma relacional. Esto permite mitigar las devoluciones a nivel nacional y consolidar una tasa de conformidad robusta.",
+      dsTitle: "🔬 2. Hallazgos de Ciencia de Datos en Reclamos:",
+      dsText: "El escaneo heurístico de incidencias identificó que el 18.5% de reclamaciones compartían la misma causa-raíz por defectos de empaque primario. El motor de base de datos consolidó las cuentas sin solapamientos redundantes, optimizando la consulta.",
+      conclusionTitle: "⚙️ 3. Conclusión de Auditoría y Retornos:",
+      conclusionText: "Se recomienda implementar inspecciones de causa-raíz en empaque antes del despacho nacional. Este control mitiga los retornos en un 14.8% estimado.",
+      insights: [
+        "Análisis del Dataset: Historial de reclamaciones y retornos nacionales normalizados en InsForge sin redundancias.",
+        "Optimización de Almacenamiento: Purgado de registros transaccionales pesados para maximizar velocidad.",
+        "Acción Directiva Recomendada: Investigar el empaque primario como causa-raíz principal de devoluciones nacionales."
+      ]
+    };
+  }
+  // Default (Bogotá or general QC)
+  return {
+    title: "INFORME EJECUTIVO DE ASEGURAMIENTO DE CALIDAD",
+    subtitle: "Strategist AI - Control de Calidad en Línea de Ensamble y Soldadura",
+    biTitle: "📊 1. Perspectiva de Inteligencia en Ensamble (Planta Bogotá):",
+    biText: "Tras completar la normalización del pipeline ETL en caliente, se consolidó la consistencia y salud de las variables de soldadura y acabados dimensionales de forma relacional. La remoción de duplicados de inspectores y mermas mitiga desvíos financieros directivos.",
+    dsTitle: "🔬 2. Hallazgos de Ciencia de Datos en Ensamble:",
+    dsText: "El escaneo heurístico de datos brutos mediante algoritmos autónomos detectó y depuró mermas y lecturas duplicadas en la línea 1 de ensamble. Al aplicar la calibración de tolerancias en PostgreSQL, el factor de riesgo se redujo a la franja de control.",
+    conclusionTitle: "⚙️ 3. Conclusión y Plan de Acción Directiva:",
+    conclusionText: "Se sugiere capacitar al personal de soldadores y calibrar los instrumentos en caliente. Estas acciones proyectan un ahorro del 17.4% estimado en reprocesos.",
+    insights: [
+      "Análisis del Dataset: Inspecciones de ensamble y soldadura en Bogotá depuradas en base de datos sin solapamientos.",
+      "Optimización de Almacenamiento: Registros brutos temporales de calidad purgados automáticamente del servidor.",
+      "Acción Directiva Recomendada: Calibrar instrumentos de ensamble en caliente y capacitar inspectores en turnos rotativos."
+    ]
+  };
+};
+
+interface ExecutiveDashboardPanelProps {
+  metrics: DataMetrics;
+  onUpdateMetrics: (updated: Partial<DataMetrics>) => void;
+  onViewChange: (view: "hub" | "etl" | "dashboard" | "chat") => void;
+  notificationPermission: string;
+  onRequestPermission: () => void;
+  onTestNotification: (delayed?: boolean) => void;
+  dashboardHistory: any[];
+  selectedHistoryDashboard: any | null;
+  onSelectHistoryDashboard: (dash: any | null) => void;
+  onClearHistory: () => void;
+}
+
 export default function ExecutiveDashboardPanel({ 
   metrics, 
   onUpdateMetrics, 
@@ -40,11 +155,7 @@ export default function ExecutiveDashboardPanel({
   onClearHistory
 }: ExecutiveDashboardPanelProps) {
   const [timeRange, setTimeRange] = useState<"1M" | "6M" | "1A">("1M");
-  const [allocation, setAllocation] = useState<AssetAllocation[]>([
-    { category: "Capacitación de Personal y Equipos", value: 45000000, roi: 18.5, recommendation: "Mantener asignación", status: "ESTABLE" },
-    { category: "Optimización de Infraestructura Cloud", value: 12000000, roi: 24.2, recommendation: "Automatizar al 100%", status: "AJUSTAR" },
-    { category: "Auditoría Externa de Seguridad de Datos", value: 28000000, roi: 14.8, recommendation: "Monitorear canales", status: "ESTRATÉGICO" },
-  ]);
+  const [allocationTrigger, setAllocationTrigger] = useState<Record<string, { value: number; recommendation: string; status: string }>>({});
 
   // Determine which metrics and title to display:
   // If the user selected a past history item, display it.
@@ -70,11 +181,38 @@ export default function ExecutiveDashboardPanel({
         activeDataset: metrics.activeDataset || "Ninguno",
       };
 
+  const defaultAllocation = getDomainAllocation(displayMetrics.activeDataset);
+  
+  const displayAllocation = defaultAllocation.map((item, index) => {
+    const key = `${displayMetrics.activeDataset}-${index}`;
+    const override = allocationTrigger[key];
+    if (override) {
+      return { ...item, ...override };
+    }
+    return item;
+  });
+
+  const adjustAsset = (index: number) => {
+    const item = displayAllocation[index];
+    const key = `${displayMetrics.activeDataset}-${index}`;
+    if (item.status === "AJUSTAR") {
+      setAllocationTrigger(prev => ({
+        ...prev,
+        [key]: { value: item.value, recommendation: "Optimización implementada", status: "ESTABLE" }
+      }));
+    } else if (item.status === "ESTRATÉGICO") {
+      setAllocationTrigger(prev => ({
+        ...prev,
+        [key]: { value: item.value + 45000, recommendation: "Establecido e incorporado", status: "ESTABLE" }
+      }));
+    }
+  };
+
   // Dynamic labels and format mapping based on dataset typology
   const getDomainMetricsConfig = (datasetName: string) => {
     const lowercase = (datasetName || "").toLowerCase();
     
-    if (lowercase.includes("despachos") || lowercase.includes("logist")) {
+    if (lowercase.includes("despachos") || lowercase.includes("logist") || lowercase.includes("cali")) {
       return {
         revenueLabel: "COSTO ESTIMADO DE OPERACIONES",
         revenueValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
@@ -85,10 +223,10 @@ export default function ExecutiveDashboardPanel({
         riskStatus: displayMetrics.riskScore > 20 ? "Alerta" : "Estable",
         efficiencyLabel: "EFICIENCIA DE DESPACHOS",
         efficiencyValue: `${displayMetrics.efficiency}%`,
-        trendRevenue: "performance"
+        trendRevenue: "logistics"
       };
     }
-    if (lowercase.includes("mejora") || lowercase.includes("tiempos") || lowercase.includes("servicio")) {
+    if (lowercase.includes("medellin") || lowercase.includes("mejora") || lowercase.includes("espesor")) {
       return {
         revenueLabel: "AHORRO ESTIMADO PROYECTADO",
         revenueValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
@@ -99,10 +237,24 @@ export default function ExecutiveDashboardPanel({
         riskStatus: displayMetrics.riskScore > 10 ? "Alerta" : "Estable",
         efficiencyLabel: "NIVEL DE CUMPLIMIENTO SLA",
         efficiencyValue: `${displayMetrics.efficiency}%`,
+        trendRevenue: "production"
+      };
+    }
+    if (lowercase.includes("colombia") || lowercase.includes("retornos") || lowercase.includes("garantias")) {
+      return {
+        revenueLabel: "COSTO TOTAL DE GARANTÍAS",
+        revenueValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
+        usersLabel: "RECLAMACIONES DE CLIENTE",
+        usersValue: `${displayMetrics.users.toLocaleString()} reclamos`,
+        riskLabel: "FACTOR DE RETORNO PPM",
+        riskValue: `${displayMetrics.riskScore}%`,
+        riskStatus: displayMetrics.riskScore > 15 ? "Crítica" : "Bajo Control",
+        efficiencyLabel: "TASA DE CONFORMIDAD GENERAL",
+        efficiencyValue: `${displayMetrics.efficiency}%`,
         trendRevenue: "performance"
       };
     }
-    // Default / General Sales & Performance
+    // Default / General Quality Control Bogotá
     return {
       revenueLabel: "RENDIMIENTO GENERAL DE INGRESOS",
       revenueValue: `$ ${displayMetrics.revenue.toLocaleString()} COP`,
@@ -141,25 +293,12 @@ export default function ExecutiveDashboardPanel({
     );
   }
 
-  // Handle allocation status upgrades or recommendations safely
-  const adjustAsset = (index: number) => {
-    setAllocation(prev => prev.map((item, idx) => {
-      if (idx === index) {
-        if (item.status === "AJUSTAR") {
-          return { ...item, recommendation: "Optimización implementada", status: "ESTABLE" };
-        } else if (item.status === "ESTRATÉGICO") {
-          return { ...item, value: item.value + 45000, roi: 3.2, recommendation: "Establecido e incorporado", status: "ESTABLE" };
-        }
-      }
-      return item;
-    }));
-  };
-
   const downloadExecutiveReport = () => {
     const company = displayedDashboard?.companyName || "Empresa Global de Operaciones";
     const description = displayedDashboard?.businessDescription || "Análisis Integrado de Métricas y Business Intelligence";
     const dateStamp = displayedDashboard?.timestamp || new Date().toLocaleString("es-CO");
     const dataset = displayMetrics.activeDataset;
+    const analysisConfig = getDomainAnalysisConfig(dataset);
 
     // Create a new window for premium styled print
     const printWindow = window.open("", "_blank");
@@ -313,8 +452,8 @@ export default function ExecutiveDashboardPanel({
         <body>
           <div class="header-bar">
             <div>
-              <h1 class="title-main">INFORME EJECUTIVO DE OPERACIONES Y ANALÍTICA</h1>
-              <p class="subtitle">Strategist AI - Optimización Operativa e Inteligencia de Negocios</p>
+              <h1 class="title-main">${analysisConfig.title}</h1>
+              <p class="subtitle">${analysisConfig.subtitle}</p>
             </div>
             <div class="meta-info">
               <div>Fecha: ${dateStamp}</div>
@@ -350,21 +489,25 @@ export default function ExecutiveDashboardPanel({
 
           <div class="section-title">Diagnóstico y Recomendaciones Strategist AI</div>
           <ul class="insights-list">
-            <li><strong>Análisis del Dataset:</strong> Verificación de consistencia de esquemas al 100% en base de datos PostgreSQL. Se eliminaron registros duplicados e inconsistencias para normalizar la data.</li>
-            <li><strong>Optimización de Almacenamiento:</strong> Los logs temporales del pipeline ETL fueron completamente purgados del backend para maximizar la velocidad y espacio del servidor en la nube.</li>
-            <li><strong>Acción Directiva Recomendada:</strong> El índice de riesgo/latencia de ${domainConfig.riskValue} debe ser mitigado implementando la optimización de procesos y el plan de acción predictivo.</li>
+            ${analysisConfig.insights.map(ins => {
+              const parts = ins.split(":");
+              if (parts.length > 1) {
+                return `<li><strong>${parts[0]}:</strong>${parts.slice(1).join(":")}</li>`;
+              }
+              return `<li>${ins}</li>`;
+            }).join("")}
           </ul>
 
           <div class="section-title">Análisis de Inteligencia de Negocios y Ciencia de Datos</div>
-          <div style="font-size: 11px; color: #334155; margin-bottom: 25px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; leading-height: 1.5;">
-            <p style="margin-top: 0;"><strong>📊 1. Perspectiva de Inteligencia de Negocios (Business Intelligence):</strong><br/>
-            Tras completar la normalización del pipeline ETL en caliente, se consolidó la consistencia y salud de las variables clave dentro del estándar de excelencia del 98.6%. La reducción de inconsistencias operativas mitiga desvíos financieros, incrementando la eficiencia global de la empresa y garantizando la trazabilidad integral de los indicadores clave de rendimiento (KPIs) directivos.</p>
+          <div style="font-size: 11px; color: #334155; margin-bottom: 25px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; line-height: 1.5;">
+            <p style="margin-top: 0;"><strong>${analysisConfig.biTitle}</strong><br/>
+            ${analysisConfig.biText}</p>
             
-            <p><strong>🔬 2. Hallazgos de Ciencia de Datos (Data Science):</strong><br/>
-            El escaneo heurístico de datos brutos mediante algoritmos supervisados detectó y eliminó una duplicidad histórica del 14% en los registros transaccionales. El análisis probabilístico de causa-raíz confirma que las latencias y redundancias de procesamiento representan el principal factor limitante del rendimiento. La purga de estos históricos obsoletos en la base de datos PostgreSQL optimiza los tiempos de respuesta del servidor a 142ms.</p>
+            <p><strong>${analysisConfig.dsTitle}</strong><br/>
+            ${analysisConfig.dsText}</p>
             
-            <p style="margin-bottom: 0;"><strong>⚙️ 3. Conclusión de Analítica Operativa y Rendimiento:</strong><br/>
-            Se recomienda encarecidamente implementar el plan de capacitación asignado y la optimización automatizada de recursos para consolidar la reducción de gastos remanente. Este plan de acción proyecta una disminución adicional del 17.4% en costos operativos para el cierre del trimestre.</p>
+            <p style="margin-bottom: 0;"><strong>${analysisConfig.conclusionTitle}</strong><br/>
+            ${analysisConfig.conclusionText}</p>
           </div>
 
           <div class="section-title">Plan de Acciones de Optimización</div>
@@ -379,7 +522,7 @@ export default function ExecutiveDashboardPanel({
               </tr>
             </thead>
             <tbody>
-              ${allocation.map(item => `
+              ${displayAllocation.map(item => `
                 <tr>
                   <td><strong>${item.category}</strong></td>
                   <td>$ ${item.value.toLocaleString()} COP</td>
@@ -840,7 +983,7 @@ export default function ExecutiveDashboardPanel({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {allocation.map((item, index) => (
+              {displayAllocation.map((item, index) => (
                 <tr key={index} className="hover:bg-white/3 transition-colors">
                   <td className="p-4 font-semibold text-[#dae2fd]">{item.category}</td>
                   <td className="p-4 font-mono font-medium">$ {item.value.toLocaleString()} COP</td>

@@ -15,6 +15,8 @@ interface SidebarProps {
   activeView: "hub" | "etl" | "dashboard" | "chat";
   onViewChange: (view: "hub" | "etl" | "dashboard" | "chat") => void;
   onNewQuery: () => void;
+  onOpenConfig?: () => void;
+  onOpenSupport?: () => void;
   apiConnected: boolean;
   currentUser?: { username: string; email: string } | null;
   onLogout?: () => void;
@@ -26,6 +28,8 @@ export default function Sidebar({
   activeView, 
   onViewChange, 
   onNewQuery, 
+  onOpenConfig,
+  onOpenSupport,
   apiConnected,
   currentUser,
   onLogout,
@@ -122,12 +126,18 @@ export default function Sidebar({
 
         {/* Support & settings */}
         <div className="flex flex-col gap-2">
-          <button className="flex items-center gap-3 px-4 py-1 text-sm text-[#c3c5d7] hover:text-[#dae2fd] transition-colors text-left">
-            <Settings className="w-4 h-4" />
+          <button 
+            onClick={() => { onOpenConfig?.(); onCloseSidebar?.(); }}
+            className="flex items-center gap-3 px-4 py-1.5 text-sm text-[#c3c5d7] hover:text-[#dae2fd] hover:bg-[#2d3449]/20 rounded-md transition-all text-left cursor-pointer active:scale-[0.98]"
+          >
+            <Settings className="w-4 h-4 text-inherit" />
             <span>Configuración</span>
           </button>
-          <button className="flex items-center gap-3 px-4 py-1 text-sm text-[#c3c5d7] hover:text-[#dae2fd] transition-colors text-left">
-            <HelpCircle className="w-4 h-4" />
+          <button 
+            onClick={() => { onOpenSupport?.(); onCloseSidebar?.(); }}
+            className="flex items-center gap-3 px-4 py-1.5 text-sm text-[#c3c5d7] hover:text-[#dae2fd] hover:bg-[#2d3449]/20 rounded-md transition-all text-left cursor-pointer active:scale-[0.98]"
+          >
+            <HelpCircle className="w-4 h-4 text-inherit" />
             <span>Soporte</span>
           </button>
         </div>
