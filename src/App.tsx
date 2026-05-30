@@ -357,10 +357,28 @@ export default function App() {
   };
 
   // Perform immediate dataset registration, state redirection, and welcome analytics trigger
-  const handleDatasetLoaded = (newMetrics: DataMetrics, processType?: string) => {
-    setMetrics(newMetrics);
-    handleAddLog("Sistema", `Fijando nuevo dataset activo: ${newMetrics.activeDataset}`);
-    handleAddLog("Análisis", `Registrando nuevas dimensiones: $ ${newMetrics.revenue.toLocaleString()} COP de costo de no calidad.`);
+  const handleDatasetLoaded = async (newMetrics: DataMetrics, processType?: string, records: any[] = []) => {
+    // 1. Ingest raw records in the backend database
+    let finalMetrics = newMetrics;
+    try {
+      const ingestRes = await apiFetch("/api/ingest-raw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ records })
+      });
+      if (ingestRes.ok) {
+        const ingestData = await ingestRes.json();
+        if (ingestData.success && ingestData.activeMetrics) {
+          finalMetrics = ingestData.activeMetrics;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to ingest raw records to database, proceeding with local metrics:", err);
+    }
+
+    setMetrics(finalMetrics);
+    handleAddLog("Sistema", `Fijando nuevo dataset activo: ${finalMetrics.activeDataset}`);
+    handleAddLog("Análisis", `Registrando nuevas dimensiones: $ ${finalMetrics.revenue.toLocaleString()} COP de costo de no calidad.`);
     
     // Redirect to conversation view instantly as requested
     setActiveView("chat");
@@ -372,7 +390,7 @@ export default function App() {
       {
         id: `user-notif-${Date.now()}`,
         role: "user",
-        text: `[Sistema] Dataset cargado correctamente: "${newMetrics.activeDataset}" para iniciar el proceso de: ${selectedProcess}`,
+        text: `[Sistema] Dataset cargado correctamente: "${finalMetrics.activeDataset}" para iniciar el proceso de: ${selectedProcess}`,
         timestamp: `${formattedTime} • SISTEMA`
       },
       {
@@ -380,17 +398,17 @@ export default function App() {
         role: "model",
         text: `### Estimado cliente, bienvenido al módulo agéntico donde te guiaré para poder llevar a cabo todo tu proceso de tratamiento de data y gestión de indicadores de alto impacto.
  
-Hemos recibido con éxito tu conjunto de datos **"${newMetrics.activeDataset}"** para iniciar el proceso de **${selectedProcess}**.
+Hemos recibido con éxito tu conjunto de datos **"${finalMetrics.activeDataset}"** para iniciar el proceso de **${selectedProcess}**.
  
 A continuación, te comparto un **análisis sencillo** de cómo se configuran tus métricas actualmente:
  
 *   **Proceso:** \`${selectedProcess}\`
-*   **Conjunto de Datos:** \`${newMetrics.activeDataset}\`
-*   **Costo de No Calidad:** \`$ ${newMetrics.revenue.toLocaleString()} COP\`
-*   **Muestras Totales:** \`${newMetrics.users.toLocaleString()} inspecciones\`
-*   **Tasa de Conformidad:** \`${newMetrics.efficiency}%\`
-*   **Alerta de Desviación:** \`${newMetrics.warehouseDelay ? "SÍ (Ajuste requerido en ETL)" : "NO (Estable)"}\`
-*   **Tasa de No Conformidad:** \`${newMetrics.riskScore}%\`
+*   **Conjunto de Datos:** \`${finalMetrics.activeDataset}\`
+*   **Costo de No Calidad:** \`$ ${finalMetrics.revenue.toLocaleString()} COP\`
+*   **Muestras Totales:** \`${finalMetrics.users.toLocaleString()} inspecciones\`
+*   **Tasa de Conformidad:** \`${finalMetrics.efficiency}%\`
+*   **Alerta de Desviación:** \`${finalMetrics.warehouseDelay ? "SÍ (Ajuste requerido en ETL)" : "NO (Estable)"}\`
+*   **Tasa de No Conformidad:** \`${finalMetrics.riskScore}%\`
  
 #### 🛠️ Próximos Pasos en el Tratamiento de Datos (ETL)
 Como parte del proceso, he notado que el conjunto de datos de calidad mejoraría con una rápida limpieza de IDs duplicados y calibración de tolerancias.
@@ -403,13 +421,6 @@ Si deseas ver cómo se realiza la limpieza y calibración en tiempo real en la c
         hasVarianceChart: false
       }
     ]);
-
-    // Update backend metric state asynchronously
-    apiFetch("/api/update-metrics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newMetrics),
-    }).catch(err => console.error("Error updating metrics backend on load:", err));
   };
 
   const handleCompleteETL = () => {

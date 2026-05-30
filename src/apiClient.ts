@@ -27,6 +27,7 @@ const mockState = {
   },
   chatHistory: [] as any[],
   logs: [] as any[],
+  rawInspections: [] as any[],
 };
 
 /** Wrapper fetch que intercepta rutas /api/* en modo estático */
@@ -48,6 +49,87 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<{ ok
   }
   if (path === '/api/etl-logs') {
     return mockResponse({ logs: mockState.logs });
+  }
+  if (path === '/api/ingest-raw') {
+    const body = options?.body ? JSON.parse(options.body as string) : {};
+    const records = body.records || [];
+    mockState.rawInspections = records;
+
+    const totalInspections = records.length;
+    const totalCost = records.reduce((sum: number, r: any) => sum + parseFloat(r.costoNoCalidad || 0), 0);
+    const defectCount = records.filter((r: any) => r.resultado === "Defectuoso").length;
+    
+    const riskScore = totalInspections > 0 ? Number(((defectCount / totalInspections) * 100).toFixed(1)) : 0;
+    const efficiency = totalInspections > 0 ? Number((100 - riskScore).toFixed(1)) : 0;
+    const hasWarehouseDelay = records.some((r: any) => r.resultado === "Defectuoso" && r.region === "Cali");
+
+    mockState.activeMetrics = {
+      revenue: totalCost,
+      users: totalInspections,
+      riskScore,
+      efficiency,
+      warehouseDelay: hasWarehouseDelay,
+      activeDataset: mockState.activeMetrics.activeDataset || "Dataset Ingestado",
+    };
+
+    return mockResponse({ success: true, activeMetrics: mockState.activeMetrics });
+  }
+  if (path === '/api/trigger-etl') {
+    const body = options?.body ? JSON.parse(options.body as string) : {};
+    const datasetName = body.datasetName || mockState.activeMetrics.activeDataset || "Activo";
+
+    // Deduplication
+    const MinIdsMap = new Map<string, any>();
+    mockState.rawInspections.forEach((r: any) => {
+      const key = `${r.inspectorName}-${r.costoNoCalidad}-${r.tolerancia}-${r.resultado}-${r.region}`;
+      if (!MinIdsMap.has(key)) {
+        MinIdsMap.set(key, r);
+      }
+    });
+    mockState.rawInspections = Array.from(MinIdsMap.values());
+
+    // Clean negatives
+    mockState.rawInspections.forEach((r: any) => {
+      if (parseFloat(r.costoNoCalidad) < 0) {
+        r.costoNoCalidad = 0;
+      }
+    });
+
+    // Calibrate
+    mockState.rawInspections.forEach((r: any) => {
+      if (parseFloat(r.tolerancia) >= 0.1 && parseFloat(r.tolerancia) <= 0.9 && r.resultado === "Defectuoso") {
+        r.resultado = "Aceptado";
+      }
+    });
+
+    const totalInspections = mockState.rawInspections.length;
+    const totalCost = mockState.rawInspections.reduce((sum: number, r: any) => sum + parseFloat(r.costoNoCalidad || 0), 0);
+    const defectCount = mockState.rawInspections.filter((r: any) => r.resultado === "Defectuoso").length;
+    
+    const riskScore = totalInspections > 0 ? Number(((defectCount / totalInspections) * 100).toFixed(1)) : 0;
+    const efficiency = 98.6;
+
+    mockState.activeMetrics = {
+      revenue: totalCost,
+      users: totalInspections,
+      riskScore,
+      efficiency,
+      warehouseDelay: false,
+      activeDataset: datasetName,
+    };
+
+    // Populate mockState logs
+    const timeNow = new Date().toLocaleTimeString("en-GB");
+    mockState.logs = [
+      { id: "1", time: timeNow, category: "Sistema", message: `[ETL INICIO] Iniciando Pipeline de Ingestión para: ${datasetName}` },
+      { id: "2", time: timeNow, category: "Escaneo", message: `[1. EXTRACT] Abriendo túnel de datos. Leyendo registros raw...` },
+      { id: "3", time: timeNow, category: "Análisis", message: `[2. TRANSFORM] Deduplicación ejecutada: ${totalInspections} registros únicos conservados.` },
+      { id: "4", time: timeNow, category: "Integridad", message: "[2. TRANSFORM] Normalizando esquemas relacionales de calidad a UTF-8." },
+      { id: "5", time: timeNow, category: "Seguridad", message: "[3. LOAD] Estableciendo conexión segura TLS/SSL con InsForge PostgreSQL..." },
+      { id: "6", time: timeNow, category: "Sistema", message: "[ETL ÉXITO] Pipeline completado. Tablas de datos optimizadas con integridad del 100%." }
+    ];
+
+    return mockResponse({ success: true, activeMetrics: mockState.activeMetrics });
   }
   if (path === '/api/update-metrics') {
     if (options?.body) {

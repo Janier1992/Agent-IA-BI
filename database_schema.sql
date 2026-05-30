@@ -12,21 +12,21 @@
 -- ==========================================
 CREATE TABLE IF NOT EXISTS active_metrics (
     id SERIAL PRIMARY KEY,
-    revenue BIGINT NOT NULL DEFAULT 14298000, -- Costo de No Calidad (COP)
-    users INT NOT NULL DEFAULT 82410,          -- Inspecciones Realizadas (Muestras)
-    risk_score DECIMAL(5,2) NOT NULL DEFAULT 12.40, -- Tasa de No Conformidad (%)
-    efficiency DECIMAL(5,2) NOT NULL DEFAULT 94.80, -- Tasa de Conformidad (%)
-    warehouse_delay BOOLEAN NOT NULL DEFAULT TRUE,  -- Alerta de Desviación de Tolerancia
-    active_dataset VARCHAR(255) NOT NULL DEFAULT 'Calidad_Inspecciones_Planta_Q3' -- Nombre del Dataset Activo
+    revenue BIGINT NOT NULL DEFAULT 0,          -- Costo de No Calidad (COP)
+    users INT NOT NULL DEFAULT 0,               -- Inspecciones Realizadas (Muestras)
+    risk_score DECIMAL(5,2) NOT NULL DEFAULT 0.00, -- Tasa de No Conformidad (%)
+    efficiency DECIMAL(5,2) NOT NULL DEFAULT 0.00, -- Tasa de Conformidad (%)
+    warehouse_delay BOOLEAN NOT NULL DEFAULT FALSE,  -- Alerta de Desviación de Tolerancia
+    active_dataset VARCHAR(255) NOT NULL DEFAULT 'Ninguno' -- Nombre del Dataset Activo
 );
 
 COMMENT ON TABLE active_metrics IS 'Almacena las métricas de calidad en tiempo real importadas temporalmente durante el ETL.';
 COMMENT ON COLUMN active_metrics.revenue IS 'Costo total derivado de fallas o reprocesamientos en pesos colombianos (COP).';
 COMMENT ON COLUMN active_metrics.users IS 'Cantidad acumulada de muestras o lotes inspeccionados en la planta colombiana.';
 
--- Sembrar valores iniciales predeterminados (Control de Calidad Q3 Bogotá)
+-- Sembrar valores iniciales predeterminados (Limpio por defecto)
 INSERT INTO active_metrics (revenue, users, risk_score, efficiency, warehouse_delay, active_dataset)
-SELECT 14298000, 82410, 12.40, 94.80, TRUE, 'Calidad_Inspecciones_Planta_Q3'
+SELECT 0, 0, 0.00, 0.00, FALSE, 'Ninguno'
 WHERE NOT EXISTS (SELECT 1 FROM active_metrics);
 
 
@@ -63,9 +63,9 @@ COMMENT ON TABLE etl_logs IS 'Logs históricos del pipeline ETL de autocuración
 
 -- Sembrar logs iniciales de Aseguramiento de Calidad
 INSERT INTO etl_logs (time, category, message) VALUES
-(TO_CHAR(NOW(), 'HH24:MI:SS'), 'Sistema', 'Agente de Ingestión de Calidad inicializado en PostgreSQL (InsForge).'),
-(TO_CHAR(NOW(), 'HH24:MI:SS'), 'Escaneo', 'Escaneando registros de inspección, planillas y sensores de tolerancia en Colombia...'),
-(TO_CHAR(NOW(), 'HH24:MI:SS'), 'Análisis', 'Estructuras relacionales de aseguramiento y mejora continua creadas exitosamente.');
+(TO_CHAR(NOW(), 'HH24:MI:SS'), 'Sistema', 'Plataforma autónoma de datos inicializada.'),
+(TO_CHAR(NOW(), 'HH24:MI:SS'), 'Escaneo', 'Esperando la carga de un conjunto de datos en el Hub de Ingestión...'),
+(TO_CHAR(NOW(), 'HH24:MI:SS'), 'Análisis', 'Estructuras analíticas preparadas para el tratamiento de datos.');
 
 
 -- ==========================================
@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS dashboard_reports (
 
 COMMENT ON TABLE dashboard_reports IS 'Historial de reportes ejecutivos de calidad consolidados con datos empresariales.';
 
+
 -- ==========================================
 -- TABLA 5: USUARIOS REGISTRADOS Y CREDENCIALES
 -- ==========================================
@@ -104,8 +105,23 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 -- Sembrar usuario por defecto (director / director123)
 -- SHA-256 de 'director123': 4e73b22cf9017686524317ed5c088ef399c43d3df13f707f59d57a2b9044e138
 INSERT INTO users (username, email, password)
-SELECT 'director', 'director@planta.co', '4e73b22cf9017686524317ed5c088ef399c43d3df13f707f59d57a2b9044e138'
+SELECT 'director', 'director@strategist.co', '4e73b22cf9017686524317ed5c088ef399c43d3df13f707f59d57a2b9044e138'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'director');
+
+
+-- ==========================================
+-- TABLA 6: REGISTROS DE INSPECCIÓN CRUDA (ETL RAW DATA)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS raw_inspections (
+    id SERIAL PRIMARY KEY,
+    inspector_name VARCHAR(100),                -- Nombre del inspector / operario
+    costo_no_calidad NUMERIC,                   -- Costo del fallo en COP
+    tolerancia DECIMAL(5,2),                    -- Tolerancia medida
+    resultado VARCHAR(50),                      -- 'Aceptado' o 'Defectuoso'
+    region VARCHAR(50)                          -- Ubicación o planta de origen
+);
+
+COMMENT ON TABLE raw_inspections IS 'Almacena los registros crudos subidos antes de ser normalizados y procesados por el pipeline ETL.';
 
 
 -- ==========================================
@@ -122,4 +138,4 @@ ALTER TABLE chat_messages DISABLE ROW LEVEL SECURITY;
 ALTER TABLE etl_logs DISABLE ROW LEVEL SECURITY;
 ALTER TABLE dashboard_reports DISABLE ROW LEVEL SECURITY;
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;
-
+ALTER TABLE raw_inspections DISABLE ROW LEVEL SECURITY;

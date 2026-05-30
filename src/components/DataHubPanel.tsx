@@ -16,11 +16,84 @@ import { DataMetrics, DataConnector, ValidationLog } from "../types";
 interface DataHubPanelProps {
   metrics: DataMetrics;
   onUpdateMetrics: (updated: Partial<DataMetrics>) => void;
-  onDatasetLoaded: (newMetrics: DataMetrics, processType?: string) => void;
+  onDatasetLoaded: (newMetrics: DataMetrics, processType?: string, records?: any[]) => void;
   logs: ValidationLog[];
   onAddLog: (log: Omit<ValidationLog, "id">) => void;
   searchFilter: string;
 }
+
+const generateSimulatedRawRecords = (presetName: string): any[] => {
+  const records: any[] = [];
+  const recordCount = Math.floor(Math.random() * 50) + 180; // between 180 and 230 rows
+  
+  const inspectorsBogota = ["Juan Perez", "Maria Gomez", "Carlos Rodriguez", "Ana Martinez"];
+  const inspectorsCali = ["Luis Hernando", "Patricia Caicedo", "Andres Felipe", "Diana Restrepo"];
+  const inspectorsMedellin = ["Mateo Toro", "Alejandra Uribe", "Santiago Villa", "Camila Hoyos"];
+  const inspectorsColombia = ["Gabriel Ochoa", "Valentina Rios", "Nicolas Diaz", "Isabella Castro"];
+  
+  let inspectors = inspectorsBogota;
+  let region = "Bogotá";
+  let presetCostoBase = 70000;
+  let presetDefectRate = 0.12;
+
+  if (presetName.includes("Cali") || presetName.includes("Logistica") || presetName.includes("Lote")) {
+    inspectors = inspectorsCali;
+    region = "Cali";
+    presetCostoBase = 110000;
+    presetDefectRate = 0.24;
+  } else if (presetName.includes("Medellin") || presetName.includes("Mejora") || presetName.includes("Planta_2")) {
+    inspectors = inspectorsMedellin;
+    region = "Medellín";
+    presetCostoBase = 60000;
+    presetDefectRate = 0.04;
+  } else if (presetName.includes("Colombia") || presetName.includes("Retornos") || presetName.includes("Garantias")) {
+    inspectors = inspectorsColombia;
+    region = "Bogotá"; // will distribute below
+    presetCostoBase = 220000;
+    presetDefectRate = 0.18;
+  }
+
+  for (let i = 0; i < recordCount; i++) {
+    // Inspector name chosen randomly
+    const inspectorName = inspectors[Math.floor(Math.random() * inspectors.length)];
+    
+    // Deduplication testing: duplicate exactly ~10% of rows
+    const isDuplicate = i > 0 && Math.random() < 0.10;
+    if (isDuplicate) {
+      const prev = records[records.length - 1];
+      records.push({ ...prev });
+      continue;
+    }
+
+    // Cost can be negative in 5% of cases to test outliers cleaning
+    let costoNoCalidad = Math.floor(Math.random() * 50000) + presetCostoBase;
+    if (Math.random() < 0.05) {
+      costoNoCalidad = -Math.floor(Math.random() * 20000);
+    }
+
+    // Tolerancia check
+    const tolerancia = Number((Math.random() * 0.9 + 0.05).toFixed(2));
+    
+    // Outcome: Defectuous based on rate
+    const resultado = Math.random() < presetDefectRate ? "Defectuoso" : "Aceptado";
+
+    let rowRegion = region;
+    if (presetName.includes("Colombia") || presetName.includes("Retornos")) {
+      const regions = ["Bogotá", "Cali", "Medellín", "Barranquilla"];
+      rowRegion = regions[Math.floor(Math.random() * regions.length)];
+    }
+
+    records.push({
+      inspectorName,
+      costoNoCalidad,
+      tolerancia,
+      resultado,
+      region: rowRegion
+    });
+  }
+  
+  return records;
+};
 
 export default function DataHubPanel({ 
   metrics, 
@@ -99,45 +172,65 @@ export default function DataHubPanel({
         message: `Detectadas ${headers.length} columnas y ${rows.length} registros en '${file.name}'.`
       });
 
-      // Simple heuristic scanning for Quality Control
+      // Simple heuristic scanning for Quality Control columns
+      let inspectorIdx = headers.findIndex(h => h.includes("inspector") || h.includes("operador") || h.includes("nombre"));
       let revenueColIdx = headers.findIndex(h => h.includes("costo") || h.includes("no_calidad") || h.includes("revenue") || h.includes("monto") || h.includes("total"));
-      let usersColIdx = headers.findIndex(h => h.includes("inspeccion") || h.includes("muestras") || h.includes("lotes") || h.includes("user") || h.includes("client"));
-      let riskColIdx = headers.findIndex(h => h.includes("risk") || h.includes("riesgo") || h.includes("no_conformidad") || h.includes("defecto"));
+      let toleranceColIdx = headers.findIndex(h => h.includes("tolerancia") || h.includes("tolerance") || h.includes("valor") || h.includes("limite"));
+      let resultColIdx = headers.findIndex(h => h.includes("resultado") || h.includes("result") || h.includes("status") || h.includes("estado"));
+      let regionColIdx = headers.findIndex(h => h.includes("region") || h.includes("planta") || h.includes("ciudad") || h.includes("zona"));
 
+      const parsedRecords: any[] = [];
       let parsedRevenueSum = 0;
-      let parsedUsersCount = 0;
-      let validRevenueRowsCount = 0;
-      let riskSum = 0;
-      let validRiskRowsCount = 0;
+      let defectCount = 0;
 
-      rows.forEach(row => {
-        const cols = row.split(",");
+      rows.forEach((row, index) => {
+        const cols = row.split(",").map(c => c.trim());
+        if (cols.length === 0 || row.trim() === "") return;
+        
+        const inspectorName = inspectorIdx !== -1 && cols[inspectorIdx] ? cols[inspectorIdx] : `Inspector ${String.fromCharCode(65 + (index % 4))}`;
+        
+        let costoNoCalidad = 150000; // default
         if (revenueColIdx !== -1 && cols[revenueColIdx]) {
           const val = parseFloat(cols[revenueColIdx].replace(/[^0-9.-]/g, ""));
           if (!isNaN(val)) {
-            parsedRevenueSum += val;
-            validRevenueRowsCount++;
+            costoNoCalidad = val;
           }
         }
-        if (usersColIdx !== -1 && cols[usersColIdx]) {
-          const val = parseInt(cols[usersColIdx].replace(/[^0-9]/g, ""), 10);
+        
+        let tolerancia = 0.5; // default
+        if (toleranceColIdx !== -1 && cols[toleranceColIdx]) {
+          const val = parseFloat(cols[toleranceColIdx]);
           if (!isNaN(val)) {
-            parsedUsersCount += val;
+            tolerancia = val;
           }
         }
-        if (riskColIdx !== -1 && cols[riskColIdx]) {
-          const val = parseFloat(cols[riskColIdx].trim());
-          if (!isNaN(val)) {
-            riskSum += val;
-            validRiskRowsCount++;
-          }
+
+        let resultado = "Aceptado"; // default
+        if (resultColIdx !== -1 && cols[resultColIdx]) {
+          resultado = cols[resultColIdx];
         }
+
+        let region = "Bogotá"; // default
+        if (regionColIdx !== -1 && cols[regionColIdx]) {
+          region = cols[regionColIdx];
+        }
+
+        parsedRevenueSum += costoNoCalidad;
+        if (resultado === "Defectuoso") {
+          defectCount++;
+        }
+
+        parsedRecords.push({
+          inspectorName,
+          costoNoCalidad,
+          tolerancia,
+          resultado,
+          region
+        });
       });
 
-      // Determine new variables based on data
-      const finalRevenue = validRevenueRowsCount > 0 ? parsedRevenueSum : 14298000; // intelligent synthetic default
-      const finalUsers = parsedUsersCount > 0 ? parsedUsersCount : (metrics.users + 1430);
-      const finalRisk = validRiskRowsCount > 0 ? Number((riskSum / validRiskRowsCount).toFixed(1)) : 12.4;
+      const totalInspections = parsedRecords.length;
+      const finalRisk = totalInspections > 0 ? Number(((defectCount / totalInspections) * 100).toFixed(1)) : 12.4;
       
       setTimeout(() => {
         onAddLog({
@@ -148,18 +241,18 @@ export default function DataHubPanel({
 
         // Redirect corporate user instantly
         onDatasetLoaded({
-          revenue: finalRevenue,
-          users: finalUsers,
+          revenue: parsedRevenueSum,
+          users: totalInspections,
           riskScore: finalRisk,
           efficiency: Number((100 - finalRisk).toFixed(1)),
-          warehouseDelay: false,
+          warehouseDelay: parsedRecords.some(r => r.resultado === "Defectuoso" && r.region === "Cali"),
           activeDataset: file.name.substring(0, 30),
-        }, selectedProcess);
+        }, selectedProcess, parsedRecords);
 
         onAddLog({
           time: new Date().toLocaleTimeString("en-GB"),
           category: "Análisis",
-          message: `¡Métricas de Calidad actualizadas! Nuevo Costo de No Calidad: $ ${finalRevenue.toLocaleString()} COP | Inspecciones: ${finalUsers.toLocaleString()} muestras.`
+          message: `¡Métricas de Calidad actualizadas! Nuevo Costo de No Calidad: $ ${parsedRevenueSum.toLocaleString()} COP | Inspecciones: ${totalInspections.toLocaleString()} muestras.`
         });
       }, 1000);
     };
@@ -417,21 +510,28 @@ export default function DataHubPanel({
                 <button
                   key={p.name}
                   onClick={() => {
+                    const records = generateSimulatedRawRecords(p.name);
+                    const totalCost = records.reduce((sum, r) => sum + r.costoNoCalidad, 0);
+                    const totalInspections = records.length;
+                    const defectCount = records.filter(r => r.resultado === "Defectuoso").length;
+                    const calculatedRiskScore = totalInspections > 0 ? Number(((defectCount / totalInspections) * 100).toFixed(1)) : 0;
+                    
                     onAddLog({
                       time: new Date().toLocaleTimeString("en-GB"),
                       category: "Sistema",
-                      message: `Forzando ingestión estructural de escenario de calidad: '${p.label}'...`
+                      message: `Forzando Ingestión estructural de escenario de calidad: '${p.label}'...`
                     });
                     
                     setTimeout(() => {
                       onDatasetLoaded({
-                        revenue: p.revenue,
-                        users: p.users,
-                        riskScore: p.riskScore,
-                        efficiency: p.efficiency,
-                        warehouseDelay: p.warehouseDelay,
+                        revenue: totalCost,
+                        users: totalInspections,
+                        riskScore: calculatedRiskScore,
+                        efficiency: Number((100 - calculatedRiskScore).toFixed(1)),
+                        warehouseDelay: records.some(r => r.resultado === "Defectuoso" && r.region === "Cali"),
                         activeDataset: p.name,
-                      }, selectedProcess);
+                      }, selectedProcess, records);
+                      
                       onAddLog({
                         time: new Date().toLocaleTimeString("en-GB"),
                         category: "Integridad",
