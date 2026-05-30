@@ -54,6 +54,10 @@ export default function Sidebar({
           <span className="w-2.5 h-2.5 rounded-full bg-[#4edea3] animate-pulse"></span>
           Salud del Sistema: Óptima
         </p>
+        <p className="text-[10px] text-[#b6c4ff] mt-1.5 font-bold uppercase tracking-widest flex items-center gap-2 bg-[#2a5ee8]/10 border border-[#2a5ee8]/20 px-2.5 py-1 rounded-full w-max select-none">
+          <span className="w-2 h-2 rounded-full bg-[#2a5ee8] animate-ping"></span>
+          Multi-Agent Team: ONLINE (5)
+        </p>
       </div>
 
       {/* Main navigation links */}

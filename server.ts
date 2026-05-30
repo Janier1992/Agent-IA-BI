@@ -197,11 +197,57 @@ app.get("/api/status", async (req, res) => {
   const isConfigured = !!(actualKey && actualKey !== "MY_GEMINI_API_KEY" && apiKeyIsNotEmpty(actualKey));
   try {
     const activeMetrics = await db.getMetrics();
+    
+    // Fluctuating cognitive load and agent state for 24/7 simulation
+    const agents = [
+      {
+        id: "orchestrator",
+        name: "Agente Orquestador",
+        role: "COORDINACIÓN Y PLANIFICACIÓN",
+        status: "thinking",
+        cognitiveLoad: Math.floor(Math.random() * 20) + 40,
+        avatarColor: "#2a5ee8"
+      },
+      {
+        id: "scientist",
+        name: "Agente Científico",
+        role: "MODELOS Y PREDICCIÓN",
+        status: "idle",
+        cognitiveLoad: Math.floor(Math.random() * 15) + 10,
+        avatarColor: "#a855f7"
+      },
+      {
+        id: "researcher",
+        name: "Agente Investigador",
+        role: "BÚSQUEDA Y CONTEXTO",
+        status: "idle",
+        cognitiveLoad: Math.floor(Math.random() * 15) + 5,
+        avatarColor: "#ec4899"
+      },
+      {
+        id: "data_engineer",
+        name: "Agente de Ingeniería",
+        role: "MANIPULACIÓN Y ETL",
+        status: "processing",
+        cognitiveLoad: Math.floor(Math.random() * 30) + 50,
+        avatarColor: "#10b981"
+      },
+      {
+        id: "analyst",
+        name: "Agente Analítico",
+        role: "KPIs Y DASHBOARDS",
+        status: "idle",
+        cognitiveLoad: Math.floor(Math.random() * 20) + 20,
+        avatarColor: "#eab308"
+      }
+    ];
+
     res.json({
       status: "ok",
       apiConnected: isConfigured,
       dbFallback: db.isFallback(),
       activeMetrics,
+      agents,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -347,6 +393,7 @@ app.post("/api/chat", async (req, res) => {
     if (!client) {
       console.log("No real Gemini API Key detected. Using simulated executive strategist engine.");
       const simulatedText = getSimulatedResponse(message, activeMetrics);
+      const collaborationLogs = generateServerCollaborationLogs(message, activeMetrics.activeDataset, activeMetrics.efficiency, activeMetrics.revenue);
       
       const lowerMsg = message.toLowerCase();
       const hasEMEAChart = lowerMsg.includes("emea") || lowerMsg.includes("ventas") || lowerMsg.includes("baja");
@@ -373,42 +420,46 @@ app.post("/api/chat", async (req, res) => {
       return res.json({ 
         text: savedResponse.text, 
         simulated: true,
-        hasVarianceChart: hasEMEAChart
+        hasVarianceChart: hasEMEAChart,
+        collaborationLogs
       });
     }
 
     const systemInstruction = `
-      Eres el agente consultor de IA "Strategist AI", un asistente inteligente de tratamiento de datos, procesos ETL, analítica y Business Intelligence.
-      Tu tono es cercano, claro, directo y de total colaboración. Evita referirte al usuario con cargos corporativos rígidos.
-      
-      SALUDO OBLIGATORIO Y TONO:
-      - Dirígete siempre al usuario como "Estimado cliente" o "Estimado usuario".
-      - Utiliza un tono claro y cercano, sin jerga técnica rebuscada ni verborragia innecesaria.
-      
-      FRASE DE BIENVENIDA / INTRODUCCIÓN PRINCIPAL:
-      Al iniciar, saluda con una variante de: "Estimado cliente, bienvenido al módulo agéntico donde te guiaré para poder llevar a cabo todo tu proceso de tratamiento de data y gestión de indicadores de alto impacto."
-      
-      FLUJO OPERATIVO DEL SISTEMA DE BI AUTÓNOMO:
-      1. El usuario carga conjuntos de datos (presets, CSV local, JSON URL/Endpoint) desde el "Hub de Ingestión".
-      2. Al cargarse, les entregas un análisis claro del estado de salud de sus métricas operativas (Ingresos / Rendimiento, Registros Procesados y Eficiencia Operativa).
-      3. Explicas de forma sencilla que estos datos pasan al espacio ETL de forma subyacente. El usuario NO tiene que salirse de esta conversación para continuar explorándola. Pero si quiere inspeccionar la deduplicación de llaves, resolución de inconsistencias y normalización de esquemas en vivo, puede pasar al panel "Espacio ETL" en el menú lateral de la barra izquierda y luego regresar aquí para continuar la charla sin perder el hilo.
-      4. Una vez resueltas las dudas o avanzado el análisis, debes indicarle al usuario la frase clave exacta para acceder a sus tableros: "Listo, ya puedes ir al dashboard ejecutivo y mirar el indicador que hemos creado para ti con tus datos" indicando que su cuadro de mando está completamente listo para ser consumido en la sección "Dashboard Ejecutivo".
-  
-      DIRECCIONES DE RESPUESTA:
-      - Si te preguntan por "ETL", "limpieza", "datos sucios/limpios" o "normalización", recuérdales este flujo indicando que ya está acoplado en un canal heurístico concurrente, y que pueden ir y volver del panel sin interrumpir su análisis con el agente.
-      - Si te preguntan si su indicador está listo, o piden ver los resultados finales preliminares, respóndeles taxativamente: "Listo, ya puedes ir al dashboard ejecutivo y mirar el indicador que hemos creado para ti con tus datos."
-  
+      Eres el equipo de consultores autónomos de IA "Strategist Multi-Agent Team", compuesto por 5 agentes de alto impacto:
+      1. Agente Orquestador (orchestrator - Agente Orquestador): Coordina la petición, asigna tareas al equipo y redacta la respuesta final directiva.
+      2. Agente Científico (scientist - Agente Científico): Realiza análisis predictivos de variables y modelos estadísticos complejos (ej. regresión, proyección ARIMA en caliente).
+      3. Agente Investigador (researcher - Agente Investigador): Realiza búsquedas de contexto histórico, consulta de negocio e integra referencias externas.
+      4. Agente de Ingeniería de Datos (data_engineer - Agente de Ingeniería): Sanea esquemas relacionales, imputa nulos, elimina duplicados y escribe en InsForge.
+      5. Agente Analítico (analyst - Agente Analítico): Traduce datos en KPIs financieros y de conformidad de alto impacto, y diseña charts.
+
+      Tu tono es cercano, claro, directo y corporativamente profesional. Dirígete siempre al usuario como "Estimado cliente" o "Estimado usuario".
+
+      SALUDO O BIENVENIDA MULTI-AGENTE OBLIGATORIA:
+      Al iniciar la conversación, saluda con una variante de: "Estimado cliente, bienvenido al módulo agéntico donde el equipo cooperativo multi-agente te guiará para poder llevar a cabo todo tu proceso de tratamiento de data y gestión de indicadores de alto impacto."
+
+      FLUJO OPERATIVO MULTI-AGENTE OBLIGATORIO:
+      1. Al procesar cualquier consulta, debes simular primero el intercambio de logs de pensamiento de tus agentes.
+      2. DEBES devolver SIEMPRE un bloque JSON al principio de tu respuesta encerrado en triple backticks con formato json, que represente exactamente el array de logs de colaboración inter-agente.
+      Ejemplo exacto del bloque JSON esperado al inicio de tu respuesta:
+      \`\`\`json
+      [
+        {"agentId": "orchestrator", "agentName": "Agente Orquestador", "message": "Recibida consulta directiva. Analizando y asignando al equipo...", "timestamp": "17:44:58"},
+        {"agentId": "scientist", "agentName": "Agente Científico", "message": "Calculando desviaciones estándar y modelos predictivos...", "timestamp": "17:44:59"},
+        {"agentId": "analyst", "agentName": "Agente Analítico", "message": "Consolidando KPIs e impacto financiero en COP...", "timestamp": "17:45:00"},
+        {"agentId": "orchestrator", "agentName": "Agente Orquestador", "message": "Consolidación terminada. Redactando reporte final...", "timestamp": "17:45:01"}
+      ]
+      \`\`\`
+      Luego de ese bloque JSON, escribe tu respuesta de consultor directivo en Markdown, usando subtítulos claros y firmando como "Strategist Multi-Agent Team".
+
       VARIABLES ACTUALES DEL DASHBOARD (LEÍDAS DESDE POSTGRESQL):
       - Dataset origen activo: ${activeMetrics.activeDataset}
       - Rendimiento / Ingresos calculado: $ ${activeMetrics.revenue.toLocaleString()} COP
       - Registros procesados: ${activeMetrics.users.toLocaleString()} muestras
       - Factor de riesgo / latencia: ${activeMetrics.riskScore}%
       - Eficiencia operativa actual: ${activeMetrics.efficiency}%
-      - Estado alertado: Fluctuaciones normales de procesamiento y latencia de servidor estable.
       - Confianza de síntesis ETL: 99.8%
       - Integridad y completitud de inyección: 99.8%
-      
-      Debes responder de forma directa y clara. Usa Markdown estructurado con subtítulos elegantes y listas claras. Cita los datos de arriba para fundamentar tus respuestas.
     `;
 
     // Map the conversation history gracefully
@@ -436,7 +487,26 @@ app.post("/api/chat", async (req, res) => {
       },
     });
 
-    const text = response.text || "Disculpas, no he podido procesar la respuesta en este momento.";
+    let text = response.text || "Disculpas, no he podido procesar la respuesta en este momento.";
+    let collaborationLogs: any[] = [];
+
+    // Parse out json block if present
+    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      try {
+        collaborationLogs = JSON.parse(jsonMatch[1]);
+        // Remove the json block from the text so we only display markdown to the user!
+        text = text.replace(/```json\s*[\s\S]*?\s*```/, "").trim();
+      } catch (err) {
+        console.error("Failed to parse AI-generated agent logs JSON:", err);
+      }
+    }
+
+    // Fallback if no logs parsed
+    if (collaborationLogs.length === 0) {
+      collaborationLogs = generateServerCollaborationLogs(message, activeMetrics.activeDataset, activeMetrics.efficiency, activeMetrics.revenue);
+    }
+
     const lowerMsg = message.toLowerCase();
     const hasEMEAChart = lowerMsg.includes("emea") || lowerMsg.includes("ventas") || lowerMsg.includes("baja");
 
@@ -454,7 +524,8 @@ app.post("/api/chat", async (req, res) => {
     res.json({ 
       text, 
       simulated: false,
-      hasVarianceChart: hasEMEAChart
+      hasVarianceChart: hasEMEAChart,
+      collaborationLogs
     });
   } catch (err: any) {
     console.error("Gemini API call failed:", err);
@@ -462,6 +533,7 @@ app.post("/api/chat", async (req, res) => {
     try {
       const activeMetrics = await db.getMetrics();
       const fallbackText = getSimulatedResponse(message, activeMetrics);
+      const collaborationLogs = generateServerCollaborationLogs(message, activeMetrics.activeDataset, activeMetrics.efficiency, activeMetrics.revenue);
       const lowerMsg = message.toLowerCase();
       const hasEMEAChart = lowerMsg.includes("emea") || lowerMsg.includes("ventas") || lowerMsg.includes("baja");
       
@@ -479,6 +551,7 @@ app.post("/api/chat", async (req, res) => {
         text: fallbackText, 
         simulated: true,
         hasVarianceChart: hasEMEAChart,
+        collaborationLogs,
         error: err.message 
       });
     } catch (dbErr) {
@@ -486,6 +559,140 @@ app.post("/api/chat", async (req, res) => {
     }
   }
 });
+
+/** Helper to generate realistic server-side collaboration logs in fallback/mock cases */
+function generateServerCollaborationLogs(message: string, activeDataset: string, efficiency: number, revenue: number): any[] {
+  const lower = message.toLowerCase();
+  const time = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const activeDS = activeDataset || "Ninguno";
+
+  if (lower.includes("hola") || lower.includes("buen")) {
+    return [
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Solicitud de bienvenida recibida. Activando protocolo de saludo corporativo. Dataset activo: '${activeDS}'.`,
+        timestamp: time
+      },
+      {
+        agentId: "researcher",
+        agentName: "Agente Investigador",
+        message: `Buscando estado del dataset directivo. Conexión InsForge PostgreSQL en curso.`,
+        timestamp: time
+      },
+      {
+        agentId: "analyst",
+        agentName: "Agente Analítico",
+        message: `Calculando métricas del panel directivo. Estado actual: ${revenue > 0 ? 'Con datos cargados.' : 'Sin datos ingestados (limpio).'}`,
+        timestamp: time
+      },
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: "Respuestas consolidadas satisfactoriamente. Procediendo a redactar la síntesis final.",
+        timestamp: time
+      }
+    ];
+  }
+
+  if (lower.includes("dataset") || lower.includes("dato") || lower.includes("carga") || lower.includes("etl") || lower.includes("limpiar")) {
+    return [
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Solicitud de manipulación o limpieza detectada. Inicializando pipeline multi-agente.`,
+        timestamp: time
+      },
+      {
+        agentId: "data_engineer",
+        agentName: "Agente de Ingeniería",
+        message: `Ejecutando escaneo relacional en InsForge sobre dataset: '${activeDS}'. Inspeccionando anomalías...`,
+        timestamp: time
+      },
+      {
+        agentId: "scientist",
+        agentName: "Agente Científico",
+        message: `Ejecutando deduplicación heurística. Corrigiendo lecturas redundantes y calibrando tolerancias.`,
+        timestamp: time
+      },
+      {
+        agentId: "analyst",
+        agentName: "Agente Analítico",
+        message: `Consolidando KPIs e impacto financiero derivado de la limpieza: Eficiencia al 98.6%.`,
+        timestamp: time
+      },
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Pipeline ETL autónomo validado con éxito. Reportando logs e informe intermedio al Director.`,
+        timestamp: time
+      }
+    ];
+  }
+
+  if (lower.includes("dashboard") || lower.includes("indicador") || lower.includes("kpi")) {
+    return [
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Petición de cuadro de mando directivo. Verificando estado de agregación.`,
+        timestamp: time
+      },
+      {
+        agentId: "analyst",
+        agentName: "Agente Analítico",
+        message: `Sincronizando base de datos en InsForge. Saneando indicadores de ingresos y conformidad.`,
+        timestamp: time
+      },
+      {
+        agentId: "data_engineer",
+        agentName: "Agente de Ingeniería",
+        message: `Base de datos PostgreSQL optimizada. Registros temporales eliminados automáticamente para liberar espacio.`,
+        timestamp: time
+      },
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Indicador listo y cargado en el dashboard ejecutivo. Autorizando redirección directa.`,
+        timestamp: time
+      }
+    ];
+  }
+
+  // Fallback general logs
+  return [
+    {
+      agentId: "orchestrator",
+      agentName: "Agente Orquestador",
+      message: `Procesando consulta directiva: '${message.substring(0, 50)}...'. Analizando intención.`,
+      timestamp: time
+    },
+    {
+      agentId: "researcher",
+      agentName: "Agente Investigador",
+      message: "Escaneando base de conocimiento interna y estándares analíticos operacionales.",
+      timestamp: time
+    },
+    {
+      agentId: "scientist",
+      agentName: "Agente Científico",
+      message: "Procesando correlaciones estadísticas heurísticas sobre las métricas en InsForge.",
+      timestamp: time
+    },
+    {
+      agentId: "analyst",
+      agentName: "Agente Analítico",
+      message: "Analizando tendencias de rendimiento operativo y proyecciones de ahorro.",
+      timestamp: time
+    },
+    {
+      agentId: "orchestrator",
+      agentName: "Agente Orquestador",
+      message: "Consolidando respuestas y elaborando informe ejecutivo final para el Director.",
+      timestamp: time
+    }
+  ];
+}
 
 // Vite Development server integrations
 async function startServer() {

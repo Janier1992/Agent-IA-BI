@@ -7,6 +7,22 @@ export interface DataMetrics {
   activeDataset: string;
 }
 
+export interface AgentState {
+  id: "orchestrator" | "scientist" | "researcher" | "data_engineer" | "analyst";
+  name: string;
+  role: string;
+  status: "idle" | "planning" | "thinking" | "processing" | "completed";
+  cognitiveLoad: number;
+  avatarColor: string;
+}
+
+export interface AgentCollaborationLog {
+  agentId: string;
+  agentName: string;
+  message: string;
+  timestamp: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "model";
@@ -17,7 +33,9 @@ export interface ChatMessage {
   impact?: string;
   delta?: string;
   confidence?: string;
+  collaborationLogs?: AgentCollaborationLog[];
 }
+
 
 export interface ValidationLog {
   id: string;

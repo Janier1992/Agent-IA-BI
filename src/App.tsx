@@ -7,7 +7,7 @@ import ETLWorkspacePanel from "./components/ETLWorkspacePanel";
 import ExecutiveDashboardPanel from "./components/ExecutiveDashboardPanel";
 import AIAgentChatPanel from "./components/AIAgentChatPanel";
 import LoginPanel from "./components/LoginPanel";
-import { DataMetrics, ValidationLog, ChatMessage } from "./types";
+import { DataMetrics, ValidationLog, ChatMessage, AgentState } from "./types";
 
 interface AppToast {
   id: string;
@@ -45,6 +45,9 @@ export default function App() {
 
   // Shared Chat Messages List State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+  // Fluctuating cognitive load and agent state for 24/7 simulation
+  const [agents, setAgents] = useState<AgentState[]>([]);
 
   // Live consolidated metrics synchronized with the back-end
   const [metrics, setMetrics] = useState<DataMetrics>({
@@ -147,7 +150,9 @@ export default function App() {
             setMetrics(data.activeMetrics);
             prevMetricsRef.current = data.activeMetrics;
           }
-
+          if (data.agents) {
+            setAgents(data.agents);
+          }
           if (data.apiConnected) {
             handleAddLog("Sistema", "Conexión encriptada directa con el motor Google Gemini establecida con éxito.");
           } else {
@@ -193,6 +198,9 @@ export default function App() {
           const data = await res.json();
           if (data.activeMetrics) {
             setMetrics(data.activeMetrics);
+          }
+          if (data.agents) {
+            setAgents(data.agents);
           }
         }
       } catch (err) {
@@ -620,6 +628,7 @@ Listo, ya puedes ir al dashboard ejecutivo y mirar el indicador que hemos creado
             apiConnected={apiConnected}
             onViewChange={setActiveView}
             onGenerateDashboard={handleGenerateDashboard}
+            agents={agents}
           />
         )}
 

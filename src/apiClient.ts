@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+import { AgentCollaborationLog } from "./types";
+
 /**
  * API Client helper — detecta automáticamente si el backend Express
  * está disponible (desarrollo local) o si se está corriendo como
@@ -66,6 +68,7 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<{ ok
       text: generateStaticReply(userMessage),
       simulated: true,
       metrics: mockState.activeMetrics,
+      collaborationLogs: generateMockCollaborationLogs(userMessage),
     });
   }
   if (path === '/api/generate-dashboard') {
@@ -120,6 +123,140 @@ function generateStaticReply(message: string): string {
     return '### Dashboard Ejecutivo\n\nPuede acceder al **Dashboard Ejecutivo** desde el menú lateral para visualizar indicadores en tiempo real.\n\nEn modo demo, los KPIs se inicializan en cero y se actualizan cuando carga un dataset. ¿Qué métricas le interesan analizar?';
   }
   return `### Estimado cliente,\n\nHe recibido su consulta: *"${message}"*\n\n⚠️ **Modo Demo Estático:** El servidor de IA no está disponible en esta versión de GitHub Pages. Para análisis con IA generativa completa, ejecute el proyecto localmente:\n\n\`\`\`bash\nnpm run dev\n\`\`\`\n\nMientras tanto, puede explorar los paneles de **ETL**, **Dashboard** y **Data Hub** con datos demo.`;
+}
+
+/** Genera logs de colaboración multi-agente simulados detallados */
+function generateMockCollaborationLogs(message: string): AgentCollaborationLog[] {
+  const lower = message.toLowerCase();
+  const time = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const activeDS = mockState.activeMetrics.activeDataset || "Ninguno";
+
+  if (lower.includes("hola") || lower.includes("buen")) {
+    return [
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Solicitud de bienvenida recibida. Activando protocolo de saludo corporativo. Dataset activo: '${activeDS}'.`,
+        timestamp: time
+      },
+      {
+        agentId: "researcher",
+        agentName: "Agente Investigador",
+        message: `Buscando estado del dataset directivo. Conexión InsForge PostgreSQL en curso.`,
+        timestamp: time
+      },
+      {
+        agentId: "analyst",
+        agentName: "Agente Analítico",
+        message: `Calculando métricas del panel directivo. Estado actual: ${mockState.activeMetrics.revenue > 0 ? 'Con datos cargados.' : 'Sin datos ingestados (limpio).'}`,
+        timestamp: time
+      },
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: "Respuestas consolidadas satisfactoriamente. Procediendo a redactar la síntesis final.",
+        timestamp: time
+      }
+    ];
+  }
+
+  if (lower.includes("dataset") || lower.includes("dato") || lower.includes("carga") || lower.includes("etl") || lower.includes("limpiar")) {
+    return [
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Solicitud de manipulación o limpieza detectada. Inicializando pipeline multi-agente.`,
+        timestamp: time
+      },
+      {
+        agentId: "data_engineer",
+        agentName: "Agente de Ingeniería",
+        message: `Ejecutando escaneo relacional en InsForge sobre dataset: '${activeDS}'. Inspeccionando anomalías...`,
+        timestamp: time
+      },
+      {
+        agentId: "scientist",
+        agentName: "Agente Científico",
+        message: `Ejecutando deduplicación heurística. Corrigiendo lecturas redundantes y calibrando tolerancias.`,
+        timestamp: time
+      },
+      {
+        agentId: "analyst",
+        agentName: "Agente Analítico",
+        message: `Consolidando KPIs e impacto financiero derivado de la limpieza: Eficiencia al 98.6%.`,
+        timestamp: time
+      },
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Pipeline ETL autónomo validado con éxito. Reportando logs e informe intermedio al Director.`,
+        timestamp: time
+      }
+    ];
+  }
+
+  if (lower.includes("dashboard") || lower.includes("indicador") || lower.includes("kpi")) {
+    return [
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Petición de cuadro de mando directivo. Verificando estado de agregación.`,
+        timestamp: time
+      },
+      {
+        agentId: "analyst",
+        agentName: "Agente Analítico",
+        message: `Sincronizando base de datos en InsForge. Saneando indicadores de ingresos y conformidad.`,
+        timestamp: time
+      },
+      {
+        agentId: "data_engineer",
+        agentName: "Agente de Ingeniería",
+        message: `Base de datos PostgreSQL optimizada. Registros temporales eliminados automáticamente para liberar espacio.`,
+        timestamp: time
+      },
+      {
+        agentId: "orchestrator",
+        agentName: "Agente Orquestador",
+        message: `Indicador listo y cargado en el dashboard ejecutivo. Autorizando redirección directa.`,
+        timestamp: time
+      }
+    ];
+  }
+
+  // Fallback general logs
+  return [
+    {
+      agentId: "orchestrator",
+      agentName: "Agente Orquestador",
+      message: `Procesando consulta directiva: '${message.substring(0, 50)}...'. Analizando intención.`,
+      timestamp: time
+    },
+    {
+      agentId: "researcher",
+      agentName: "Agente Investigador",
+      message: "Escaneando base de conocimiento interna y estándares analíticos operacionales.",
+      timestamp: time
+    },
+    {
+      agentId: "scientist",
+      agentName: "Agente Científico",
+      message: "Procesando correlaciones estadísticas heurísticas sobre las métricas en InsForge.",
+      timestamp: time
+    },
+    {
+      agentId: "analyst",
+      agentName: "Agente Analítico",
+      message: "Analizando tendencias de rendimiento operativo y proyecciones de ahorro.",
+      timestamp: time
+    },
+    {
+      agentId: "orchestrator",
+      agentName: "Agente Orquestador",
+      message: "Consolidando respuestas y elaborando informe ejecutivo final para el Director.",
+      timestamp: time
+    }
+  ];
 }
 
 export { IS_STATIC_MODE };

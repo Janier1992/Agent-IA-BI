@@ -14,7 +14,7 @@ import {
   Terminal,
   RefreshCw
 } from "lucide-react";
-import { DataMetrics, ChatMessage } from "../types";
+import { DataMetrics, ChatMessage, AgentState } from "../types";
 
 interface AIAgentChatPanelProps {
   metrics: DataMetrics;
@@ -24,6 +24,7 @@ interface AIAgentChatPanelProps {
   apiConnected: boolean;
   onViewChange: (view: "hub" | "etl" | "dashboard" | "chat") => void;
   onGenerateDashboard: (companyName?: string, businessDescription?: string) => Promise<any>;
+  agents: AgentState[];
 }
 
 export default function AIAgentChatPanel({ 
@@ -33,7 +34,8 @@ export default function AIAgentChatPanel({
   setMessages,
   apiConnected,
   onViewChange,
-  onGenerateDashboard
+  onGenerateDashboard,
+  agents
 }: AIAgentChatPanelProps) {
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -158,7 +160,7 @@ export default function AIAgentChatPanel({
               </div>
 
               <div className={`flex-1 space-y-3 ${m.role === "user" ? "text-right" : "text-left"}`}>
-                {/* Text Bubble layout */}
+                 {/* Text Bubble layout */}
                 <div className={`inline-block p-4 rounded-xl text-sm leading-relaxed ${
                   m.role === "user" 
                     ? "bg-[#171f33]/70 border border-white/10 text-[#dae2fd]" 
@@ -166,6 +168,28 @@ export default function AIAgentChatPanel({
                 }`}>
                   {m.text}
                 </div>
+
+                {/* Collapsible Multi-Agent Collaboration Logs Accordion */}
+                {m.role === "model" && m.collaborationLogs && m.collaborationLogs.length > 0 && (
+                  <details className="group border border-white/10 rounded-xl bg-[#171f33]/40 overflow-hidden select-none text-left max-w-2xl">
+                    <summary className="flex items-center justify-between p-3 bg-[#171f33]/80 hover:bg-[#2a5ee8]/10 cursor-pointer transition-all text-xs font-bold text-[#b6c4ff] list-none outline-none">
+                      <div className="flex items-center gap-2">
+                        <Terminal className="w-3.5 h-3.5 text-[#2a5ee8]" />
+                        <span>Trazabilidad: Flujo de Pensamiento Cooperativo</span>
+                      </div>
+                      <span className="text-[9px] text-[#8d90a0] transition-transform duration-200 group-open:rotate-180">▼</span>
+                    </summary>
+                    <div className="p-3.5 space-y-3 bg-[#0c1322]/50 border-t border-white/5 font-mono text-[10px] leading-relaxed text-[#c3c5d7]">
+                      {m.collaborationLogs.map((log, index) => (
+                        <div key={index} className="flex gap-2 items-start transition-all hover:text-white duration-100">
+                          <span className="text-[#8d90a0] select-none shrink-0">[{log.timestamp}]</span>
+                          <span className="font-bold text-[#b6c4ff] whitespace-nowrap shrink-0">{log.agentName}:</span>
+                          <span>{log.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
 
                 {m.role === "model" && (
                   <div className="flex flex-wrap gap-2.5 mt-2 justify-start">
@@ -375,113 +399,106 @@ export default function AIAgentChatPanel({
 
       </div>
 
-      {/* RIGHT CONTEXT SIDEBAR (320px) */}
+      {/* RIGHT MULTI-AGENT CONTROL PANEL (320px) */}
       <aside className="hidden xl:flex w-[320px] bg-[#131b2e]/30 border-l border-white/10 flex flex-col h-full shrink-0 select-none ml-6">
         {/* Title */}
-        <div className="p-4 border-b border-white/10">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <h3 className="text-xs font-bold text-[#dae2fd] uppercase tracking-widest flex items-center gap-2">
-            <TrendingUp className="w-4.5 h-4.5 text-[#4edea3]" />
-            CONTEXTO EN VIVO
+            <Bot className="w-4.5 h-4.5 text-[#b6c4ff]" />
+            ESTRATEGIA MULTI-AGENTE
           </h3>
+          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#2a5ee8]/15 border border-[#2a5ee8]/30 text-[9px] text-[#b6c4ff] font-extrabold animate-pulse">
+            24/7 ONLINE
+          </span>
         </div>
 
-        {/* Scrollable contextual settings */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {/* Scrollable list of active agents */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           
-          {/* Main active database dataset block */}
-          <section className="space-y-2">
-            <p className="text-[10px] text-[#8d90a0] uppercase font-bold tracking-wide">CONJUNTO DE INSPECCIÓN ORIGEN</p>
-            <div className="p-3 bg-[#171f33] border border-white/10 rounded-lg flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-[#2a5ee8]/10 flex items-center justify-center shrink-0">
-                <Database className="w-4 h-4 text-[#b6c4ff]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-[#dae2fd] truncate">{metrics.activeDataset}</p>
-                <p className="text-[10px] text-[#8d90a0]">Actualizado en vivo</p>
-              </div>
-            </div>
-          </section>
+          {/* Agent list mapping */}
+          {(agents && agents.length > 0 ? agents : [
+            { id: "orchestrator", name: "Agente Orquestador", role: "COORDINACIÓN Y PLANIFICACIÓN", status: "thinking", cognitiveLoad: 48, avatarColor: "#2a5ee8" },
+            { id: "scientist", name: "Agente Científico", role: "MODELOS Y PREDICCIÓN", status: "idle", cognitiveLoad: 12, avatarColor: "#a855f7" },
+            { id: "researcher", name: "Agente Investigador", role: "BÚSQUEDA Y CONTEXTO", status: "idle", cognitiveLoad: 8, avatarColor: "#ec4899" },
+            { id: "data_engineer", name: "Agente de Ingeniería", role: "MANIPULACIÓN Y ETL", status: "processing", cognitiveLoad: 72, avatarColor: "#10b981" },
+            { id: "analyst", name: "Agente Analítico", role: "KPIs Y DASHBOARDS", status: "idle", cognitiveLoad: 20, avatarColor: "#eab308" }
+          ]).map((agent) => (
+            <div 
+              key={agent.id} 
+              className="p-3 bg-[#171f33]/80 border border-white/10 rounded-xl space-y-2 shadow-sm transition-all hover:border-white/15"
+            >
+              <div className="flex items-center gap-2.5">
+                {/* Visual Avatar with Pulse ring */}
+                <div 
+                  className="w-8.5 h-8.5 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold font-sans relative"
+                  style={{ backgroundColor: `${agent.avatarColor}20`, border: `1px solid ${agent.avatarColor}40` }}
+                >
+                  <span style={{ color: agent.avatarColor }}>{agent.name.split(" ")[1]?.[0] || agent.name[0]}</span>
+                  {agent.status !== "idle" && (
+                    <span 
+                      className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-[#0c1322]" 
+                      style={{ 
+                        backgroundColor: agent.status === "thinking" ? "#2a5ee8" : agent.status === "processing" ? "#10b981" : "#eab308",
+                        animation: "ping 1.5s infinite"
+                      }}
+                    ></span>
+                  )}
+                </div>
 
-          {/* Active filter items list */}
-          <section className="space-y-2">
-            <div className="flex justify-between items-center text-[10px] text-[#8d90a0] font-bold">
-              <p className="uppercase tracking-wide">FILTROS DE CONTEXTO ACTIVOS</p>
-              {activeFilters.length > 0 && (
-                <button onClick={() => setActiveFilters([])} className="text-[#b6c4ff] hover:underline">
-                  Limpiar
-                </button>
-              )}
-            </div>
-            {activeFilters.length === 0 ? (
-              <p className="text-xs text-[#8d90a0] italic">Ningún filtro activo para el análisis actual.</p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {activeFilters.map((f) => (
-                  <div 
-                    key={f} 
-                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#2d3449] border border-white/5 text-[10px] text-[#dae2fd] font-medium"
-                  >
-                    <span>{f}</span>
-                    <button onClick={() => removeFilter(f)} className="hover:text-white rounded-full">
-                      <X className="w-3 h-3" />
-                    </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs font-bold text-[#dae2fd] truncate">{agent.name}</p>
+                    <span 
+                      className="text-[8px] font-extrabold uppercase font-mono px-1 py-0.5 rounded"
+                      style={{ 
+                        color: agent.status === "idle" ? "#8d90a0" : agent.status === "thinking" ? "#b6c4ff" : agent.status === "processing" ? "#4edea3" : "#eab308",
+                        backgroundColor: agent.status === "idle" ? "rgba(255,255,255,0.05)" : agent.status === "thinking" ? "rgba(42,94,232,0.1)" : "rgba(16,185,129,0.1)"
+                      }}
+                    >
+                      {agent.status === "idle" ? "DORMIDO" : agent.status === "thinking" ? "PENSANDO" : "PROCESANDO"}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Real-time alerts listing */}
-          <section className="space-y-2.5">
-            <p className="text-[10px] text-[#8d90a0] uppercase font-bold tracking-wide">ANOMALÍAS EN VIVO</p>
-            <div className="space-y-2">
-              <div className="p-3 bg-[#ffdad6]/5 border-l-2 border-[#ffb4ab] rounded-lg text-xs flex gap-2.5 items-start">
-                <AlertTriangle className="w-4.5 h-4.5 text-[#ffb4ab] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-[#dae2fd]">Retraso detectado en ingesta de datos</p>
-                  <p className="text-[10px] text-[#8d90a0] mt-0.5">Impacto: Latencia en tiempo real</p>
+                  <p className="text-[8.5px] text-[#8d90a0] font-semibold tracking-wider uppercase truncate mt-0.5">{agent.role}</p>
                 </div>
               </div>
 
-              <div className="p-3 bg-[#4edea3]/5 border-l-2 border-[#4edea3] rounded-lg text-xs flex gap-2.5 items-start">
-                <TrendingUp className="w-4.5 h-4.5 text-[#4edea3] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-[#dae2fd]">Eficiencia de Procesamiento Destacada</p>
-                  <p className="text-[10px] text-[#8d90a0] mt-0.5">+4.2% sobre meta del servidor</p>
+              {/* Fluctuating load meter gauge */}
+              <div className="space-y-1 pt-1">
+                <div className="flex justify-between text-[9px] text-[#c3c5d7] font-mono">
+                  <span>Carga Cognitiva</span>
+                  <span className="font-bold">{agent.cognitiveLoad}%</span>
+                </div>
+                <div className="w-full h-1 bg-[#2d3449]/50 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all duration-700" 
+                    style={{ 
+                      width: `${agent.cognitiveLoad}%`, 
+                      backgroundColor: agent.avatarColor 
+                    }}
+                  ></div>
                 </div>
               </div>
             </div>
-          </section>
+          ))}
 
-          {/* Data health indexes bar gauges */}
-          <section className="space-y-4 pt-1">
-            <p className="text-[10px] text-[#8d90a0] uppercase font-bold tracking-wide">ÍNDICES DE SALUD DE DATOS</p>
-            
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-[#c3c5d7] font-sans">
-                <span>Completitud</span>
-                <span className="font-bold">98.4%</span>
-              </div>
-              <div className="w-full h-1 bg-[#2d3449] rounded-full overflow-hidden">
-                <div className="h-full bg-[#2a5ee8]" style={{ width: "98.4%" }}></div>
-              </div>
+          {/* Real-time Cooperative logs box */}
+          <section className="bg-[#020617] border border-white/10 rounded-xl p-3.5 space-y-2 h-44 overflow-hidden flex flex-col shadow-inner select-none font-mono text-[9px] leading-relaxed text-[#c3c5d7]">
+            <div className="flex items-center gap-1 text-[9.5px] font-bold text-[#b6c4ff] border-b border-white/5 pb-1 uppercase shrink-0">
+              <Terminal className="w-3 h-3 text-[#2a5ee8]" />
+              <span>COOPERATION_STREAM</span>
             </div>
-
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-[#c3c5d7] font-sans">
-                <span>Latencia de Consola</span>
-                <span className="font-bold">142ms</span>
-              </div>
-              <div className="w-full h-1 bg-[#2d3449] rounded-full overflow-hidden">
-                <div className="h-full bg-[#4edea3]" style={{ width: "91%" }}></div>
-              </div>
+            <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+              <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#2a5ee8] font-bold">[Orquestador]</span> Escaneando endpoints activos en InsForge...</p>
+              <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#10b981] font-bold">[Data Eng]</span> Conector seguro establecido. PostgreSQL listado.</p>
+              <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#a855f7] font-bold">[Científico]</span> Modelo deductivo listo. Calibración en espera.</p>
+              <p className="hover:text-white transition-colors duration-75 text-[#8d90a0] font-semibold text-[#4edea3]">✓ Pipeline multi-agente 24/7 operando satisfactoriamente.</p>
             </div>
           </section>
 
         </div>
 
         {/* Bottom export transcription option btn */}
-        <div className="p-4 border-t border-white/10 bg-white/1 bg-opacity-15">
+        <div className="p-4 border-t border-white/10 bg-white/1 bg-opacity-15 shrink-0">
           <button 
             type="button" 
             onClick={triggerExportDetails}
