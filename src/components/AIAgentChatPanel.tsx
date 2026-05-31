@@ -55,6 +55,14 @@ export default function AIAgentChatPanel({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // Pre-populate company modal details from discovered BusinessDNA
+  useEffect(() => {
+    if (metrics.businessDNA) {
+      setCompanyName(metrics.businessDNA.industria + " - Planta");
+      setBusinessDesc(`${metrics.businessDNA.procesoPrincipal}. Objetivos: ${metrics.businessDNA.objetivosInferidos.join(". ")}`);
+    }
+  }, [metrics.businessDNA]);
+
   const removeFilter = (filter: string) => {
     setActiveFilters(prev => prev.filter(f => f !== filter));
   };
@@ -488,10 +496,22 @@ export default function AIAgentChatPanel({
               <span>COOPERATION_STREAM</span>
             </div>
             <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-              <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#2a5ee8] font-bold">[Orquestador]</span> Escaneando endpoints activos en InsForge...</p>
-              <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#10b981] font-bold">[Data Eng]</span> Conector seguro establecido. PostgreSQL listado.</p>
-              <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#a855f7] font-bold">[Científico]</span> Modelo deductivo listo. Calibración en espera.</p>
-              <p className="hover:text-white transition-colors duration-75 text-[#8d90a0] font-semibold text-[#4edea3]">✓ Pipeline multi-agente 24/7 operando satisfactoriamente.</p>
+              {metrics.businessDNA ? (
+                <>
+                  <p className="text-[#8d90a0]"><span className="text-[#a855f7] font-bold">[Científico]</span> ADN detectado: {metrics.businessDNA.industria}.</p>
+                  <p className="text-[#8d90a0]"><span className="text-[#2a5ee8] font-bold">[Orquestador]</span> Proceso: {metrics.businessDNA.procesoPrincipal}.</p>
+                  <p className="text-[#8d90a0]"><span className="text-[#eab308] font-bold">[Analítico]</span> KPIs: {metrics.businessDNA.subprocesos.slice(0, 2).join(", ")}.</p>
+                  <p className="text-[#8d90a0]"><span className="text-[#10b981] font-bold">[Ingeniería]</span> Indexadas: {metrics.businessDNA.entidadesPrincipales.join(", ")}.</p>
+                  <p className="font-semibold text-[#4edea3]">✓ Business DNA cargado en base de datos.</p>
+                </>
+              ) : (
+                <>
+                  <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#2a5ee8] font-bold">[Orquestador]</span> Escaneando endpoints activos en InsForge...</p>
+                  <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#10b981] font-bold">[Data Eng]</span> Conector seguro establecido. PostgreSQL listado.</p>
+                  <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#a855f7] font-bold">[Científico]</span> Modelo deductivo listo. Calibración en espera.</p>
+                  <p className="hover:text-white transition-colors duration-75 text-[#8d90a0] font-semibold text-[#4edea3]">✓ Pipeline multi-agente 24/7 operando satisfactoriamente.</p>
+                </>
+              )}
             </div>
           </section>
 

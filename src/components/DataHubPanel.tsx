@@ -9,7 +9,15 @@ import {
   AlertCircle, 
   Shuffle,
   GitBranch,
-  Play
+  Play,
+  FileSpreadsheet,
+  Globe,
+  Layers,
+  BarChart2,
+  Settings,
+  Image,
+  FileCode,
+  Shield
 } from "lucide-react";
 import { DataMetrics, DataConnector, ValidationLog } from "../types";
 
@@ -110,15 +118,71 @@ export default function DataHubPanel({
   const [isIngestingUrl, setIsIngestingUrl] = useState(false);
 
   const [connectors, setConnectors] = useState<DataConnector[]>([
-    { id: "postgresql", name: "PostgreSQL", description: "Relacional Empresarial y de transacciones cruzadas", icon: "database", connected: true, premium: true, type: "SQL" },
-    { id: "bigquery", name: "Google BigQuery", description: "Almacén de Datos e Inteligencia Escalable", icon: "cloud", connected: false, type: "Cloud" },
-    { id: "restapi", name: "REST API", description: "Ingestión JSON Universal dinámica", icon: "api", connected: false, type: "API" },
-    { id: "sap", name: "SAP HANA", description: "Recurso y Planeación Empresarial consolidada", icon: "table", connected: false, type: "ERP" },
-    { id: "sheets", name: "Google Sheets", description: "Sincronización de Hojas Estratégicas en Vivo", icon: "sheet", connected: false, type: "Sheets" },
-    { id: "salesforce", name: "Salesforce CRM", description: "Relevancia Predicha por Heurística de IA: 94%", icon: "crm", connected: false, suggested: true, relevance: "94%", type: "CRM" },
+    { id: "excel", name: "Microsoft Excel", description: "Carga universal de libros y reportes financieros (.xlsx)", icon: "excel", connected: false, premium: true, type: "Sheets" },
+    { id: "postgresql", name: "PostgreSQL Database", description: "Relacional Empresarial y de transacciones en caliente", icon: "database", connected: true, premium: true, type: "SQL" },
+    { id: "restapi", name: "REST API Endpoint", description: "Consulta e ingesta en caliente de payloads JSON", icon: "api", connected: false, type: "API" },
+    { id: "sap", name: "SAP HANA ERP", description: "Recurso de planificación y control industrial integrado", icon: "table", connected: false, type: "ERP" },
+    { id: "sheets", name: "Google Sheets", description: "Sincronización directa en vivo de Hojas Corporativas", icon: "sheet", connected: false, type: "Sheets" },
+    { id: "salesforce", name: "Salesforce CRM", description: "Relevancia Predicha por IA: 94% para auditorías", icon: "crm", connected: false, suggested: true, relevance: "94%", type: "CRM" },
+    { id: "sharepoint", name: "SharePoint Logs", description: "Repositorio colaborativo de registros directivos", icon: "sharepoint", connected: false, type: "Cloud" },
+    { id: "powerbi", name: "Power BI Datasets", description: "Modelos semánticos y de cubos OLAP integrados", icon: "powerbi", connected: false, type: "API" },
+    { id: "odoo", name: "Odoo ERP System", description: "Flujos de inventario, despachos y manufactura local", icon: "odoo", connected: false, type: "ERP" },
+    { id: "pdf_ocr", name: "PDFs / OCR / Imágenes", description: "Extracción y digitalización de planillas físicas con IA", icon: "pdf_ocr", connected: false, type: "API" },
   ]);
   const [loadingConnectorId, setLoadingConnectorId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const renderConnectorIcon = (iconName: string) => {
+    switch (iconName) {
+      case "database": return <Database className="w-5 h-5 text-[#b6c4ff]" />;
+      case "cloud": return <Cloud className="w-5 h-5" />;
+      case "api": return <Globe className="w-5 h-5 text-indigo-400" />;
+      case "table": return <Layers className="w-5 h-5" />;
+      case "sheet": return <FileSpreadsheet className="w-5 h-5 text-emerald-400" />;
+      case "excel": return <FileSpreadsheet className="w-5 h-5 text-emerald-500" />;
+      case "crm": return <Shield className="w-5 h-5 text-blue-400" />;
+      case "powerbi": return <BarChart2 className="w-5 h-5 text-amber-400" />;
+      case "odoo": return <Settings className="w-5 h-5 text-purple-400" />;
+      case "pdf_ocr": return <Image className="w-5 h-5 text-rose-400" />;
+      case "sharepoint": return <Layers className="w-5 h-5 text-cyan-400" />;
+      case "json": return <FileCode className="w-5 h-5" />;
+      default: return <Database className="w-5 h-5" />;
+    }
+  };
+
+  const runProfilingLogStream = (datasetName: string, onDone: () => void) => {
+    const time = () => new Date().toLocaleTimeString("en-GB");
+    
+    onAddLog({ time: time(), category: "Sistema", message: `[Profiling Etapa 2] Iniciando Data Profiling del archivo '${datasetName}'...` });
+    
+    setTimeout(() => {
+      onAddLog({ time: time(), category: "Escaneo", message: `[Profiling Etapa 2] Escaneando columnas. Detectadas: 5 (inspectorName, costoNoCalidad, tolerancia, resultado, region).` });
+    }, 200);
+    
+    setTimeout(() => {
+      onAddLog({ time: time(), category: "Análisis", message: `[Profiling Etapa 2] Inferencia de tipos completada. Categóricas: 3 | Numéricas: 2. Tolerancia: float64.` });
+    }, 400);
+
+    setTimeout(() => {
+      onAddLog({ time: time(), category: "Integridad", message: `[Profiling Etapa 2] Verificando calidad. Registros duplicados detectados: 10% | Valores nulos corregidos: 3%.` });
+    }, 600);
+
+    setTimeout(() => {
+      onAddLog({ time: time(), category: "Sistema", message: `[Engineering Etapa 3] Limpieza y normalización de estructuras en progreso en PostgreSQL.` });
+    }, 800);
+
+    setTimeout(() => {
+      onAddLog({ time: time(), category: "Integridad", message: `[Engineering Etapa 3] Conversión completada. Outliers negativos truncados a 0. Tolerancias alineadas.` });
+    }, 1000);
+
+    setTimeout(() => {
+      onAddLog({ time: time(), category: "Análisis", message: `[Context Discovery Etapa 4] Inferencia de contexto empresarial iniciada. Detectando industria y DNA.` });
+    }, 1200);
+
+    setTimeout(() => {
+      onDone();
+    }, 1400);
+  };
 
   // Filter connectors based on top header search filter
   const filteredConnectors = connectors.filter(conn => {
@@ -232,14 +296,7 @@ export default function DataHubPanel({
       const totalInspections = parsedRecords.length;
       const finalRisk = totalInspections > 0 ? Number(((defectCount / totalInspections) * 100).toFixed(1)) : 12.4;
       
-      setTimeout(() => {
-        onAddLog({
-          time: new Date().toLocaleTimeString("en-GB"),
-          category: "Integridad",
-          message: `Verificación concluida. Coincidencia de esquema de calidad al 99.8%. Normalizado en PostgreSQL.`
-        });
-
-        // Redirect corporate user instantly
+      runProfilingLogStream(file.name, () => {
         onDatasetLoaded({
           revenue: parsedRevenueSum,
           users: totalInspections,
@@ -254,7 +311,7 @@ export default function DataHubPanel({
           category: "Análisis",
           message: `¡Métricas de Calidad actualizadas! Nuevo Costo de No Calidad: $ ${parsedRevenueSum.toLocaleString()} COP | Inspecciones: ${totalInspections.toLocaleString()} muestras.`
         });
-      }, 1000);
+      });
     };
 
     reader.readAsText(file);
@@ -516,13 +573,7 @@ export default function DataHubPanel({
                     const defectCount = records.filter(r => r.resultado === "Defectuoso").length;
                     const calculatedRiskScore = totalInspections > 0 ? Number(((defectCount / totalInspections) * 100).toFixed(1)) : 0;
                     
-                    onAddLog({
-                      time: new Date().toLocaleTimeString("en-GB"),
-                      category: "Sistema",
-                      message: `Forzando Ingestión estructural de escenario de calidad: '${p.label}'...`
-                    });
-                    
-                    setTimeout(() => {
+                    runProfilingLogStream(p.label, () => {
                       onDatasetLoaded({
                         revenue: totalCost,
                         users: totalInspections,
@@ -537,7 +588,7 @@ export default function DataHubPanel({
                         category: "Integridad",
                         message: `Almacenamiento reconfigurado. Datos de calidad cargados correctamente para '${p.name}'.`
                       });
-                    }, 500);
+                    });
                   }}
                   className={`p-3.5 rounded-lg border text-left transition-all relative ${
                     isActive 
@@ -590,7 +641,7 @@ export default function DataHubPanel({
                 <div>
                   <div className="flex justify-between items-start mb-4">
                     <div className={`p-2 rounded ${c.suggested ? "bg-[#4edea3]/10 text-[#4edea3]" : "bg-white/5 text-[#dae2fd]"}`}>
-                      <Cloud className="w-5 h-5" />
+                      {renderConnectorIcon(c.icon)}
                     </div>
                     {c.premium && (
                       <span className="text-[10px] font-bold text-[#b6c4ff] bg-[#2a5ee8]/20 px-1.5 py-0.5 rounded tracking-wide uppercase">

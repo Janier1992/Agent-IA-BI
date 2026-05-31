@@ -7,7 +7,44 @@ import ETLWorkspacePanel from "./components/ETLWorkspacePanel";
 import ExecutiveDashboardPanel from "./components/ExecutiveDashboardPanel";
 import AIAgentChatPanel from "./components/AIAgentChatPanel";
 import LoginPanel from "./components/LoginPanel";
-import { DataMetrics, ValidationLog, ChatMessage, AgentState } from "./types";
+import { DataMetrics, ValidationLog, ChatMessage, AgentState, BusinessDNA } from "./types";
+
+function discoverBusinessDNA(datasetName: string): BusinessDNA {
+  const lowercase = datasetName.toLowerCase();
+  if (lowercase.includes("bogota") || lowercase.includes("planta_q3")) {
+    return {
+      industria: "Manufactura de Autopartes",
+      procesoPrincipal: "Aseguramiento de Calidad de Soldadura Chasis",
+      subprocesos: ["Calibración de Varianza", "Control de Tolerancia Física", "Auditoría de Turnos"],
+      entidadesPrincipales: ["Soldaduras", "Muestras", "Inspectores"],
+      objetivosInferidos: ["Reducir mermas de acero chasis", "Incrementar PPM de conformidad de soldadura", "Auditar varianza de operarios de planta Bogotá"]
+    };
+  } else if (lowercase.includes("cali") || lowercase.includes("logistica") || lowercase.includes("despachos")) {
+    return {
+      industria: "Transporte y Distribución Industrial",
+      procesoPrincipal: "Despachos de Carga y Gestión de Rutas",
+      subprocesos: ["Logística de Almacén", "Tiempos de Entrega (SLA)", "Gestión de Estibas"],
+      entidadesPrincipales: ["Despachos", "Camiones", "Estibas"],
+      objetivosInferidos: ["Garantizar SLA de entrega a tiempo", "Eliminar cuello de botella logístico en Cali", "Optimizar capacidad útil de camiones cargados"]
+    };
+  } else if (lowercase.includes("medellin") || lowercase.includes("planta_2") || lowercase.includes("mejora") || lowercase.includes("espesor")) {
+    return {
+      industria: "Manufactura de Plásticos (Extrusión)",
+      procesoPrincipal: "Monitoreo Físico de Espesor de Película",
+      subprocesos: ["Calibración de Boquilla", "Estadística de Sensores", "Control Térmico"],
+      entidadesPrincipales: ["Muestras", "Lecturas de Sensor", "Bobinas"],
+      objetivosInferidos: ["Reducir desperdicio de polímeros", "Prevenir desviaciones en micras de espesor", "Ajustar tolerancias en caliente en Medellín"]
+    };
+  } else {
+    return {
+      industria: "Servicios y Distribución Nacional",
+      procesoPrincipal: "Auditoría de Retornos y Reclamaciones de Garantías",
+      subprocesos: ["Servicio Postventa", "Trazabilidad de Lotes", "Validación de Causa-Raíz"],
+      entidadesPrincipales: ["Garantías", "Clientes", "Lotes de Producción"],
+      objetivosInferidos: ["Reducir costos no de calidad por fallas", "Identificar lotes defectuosos", "Incrementar satisfacción al cliente postventa"]
+    };
+  }
+}
 
 interface AppToast {
   id: string;
@@ -153,8 +190,12 @@ export default function App() {
           const data = await res.json();
           setApiConnected(data.apiConnected);
           if (data.activeMetrics) {
-            setMetrics(data.activeMetrics);
-            prevMetricsRef.current = data.activeMetrics;
+            let activeMetrics = data.activeMetrics;
+            if (activeMetrics.activeDataset && activeMetrics.activeDataset !== "Ninguno" && !activeMetrics.businessDNA) {
+              activeMetrics.businessDNA = discoverBusinessDNA(activeMetrics.activeDataset);
+            }
+            setMetrics(activeMetrics);
+            prevMetricsRef.current = activeMetrics;
           }
           if (data.agents) {
             setAgents(data.agents);
@@ -382,7 +423,15 @@ export default function App() {
       console.error("Failed to ingest raw records to database, proceeding with local metrics:", err);
     }
 
+    const dna = discoverBusinessDNA(finalMetrics.activeDataset);
+    finalMetrics = {
+      ...finalMetrics,
+      businessDNA: dna
+    };
+
     setMetrics(finalMetrics);
+    handleUpdateMetrics(finalMetrics);
+
     handleAddLog("Sistema", `Fijando nuevo dataset activo: ${finalMetrics.activeDataset}`);
     handleAddLog("Análisis", `Registrando nuevas dimensiones: $ ${finalMetrics.revenue.toLocaleString()} COP de costo de no calidad.`);
     
@@ -402,7 +451,7 @@ export default function App() {
       {
         id: `welcome-${Date.now()}`,
         role: "model",
-        text: `### Estimado cliente, bienvenido al módulo agéntico donde te guiaré para poder llevar a cabo todo tu proceso de tratamiento de data y gestión de indicadores de alto impacto.
+        text: `### Estimado cliente, bienvenido al módulo agéntico de Agente Autónomo BI donde te guiaré para poder llevar a cabo todo tu proceso de tratamiento de data y gestión de indicadores de alto impacto.
  
 Hemos recibido con éxito tu conjunto de datos **"${finalMetrics.activeDataset}"** para iniciar el proceso de **${selectedProcess}**.
  
@@ -415,6 +464,14 @@ A continuación, te comparto un **análisis sencillo** de cómo se configuran tu
 *   **Tasa de Conformidad:** \`${finalMetrics.efficiency}%\`
 *   **Alerta de Desviación:** \`${finalMetrics.warehouseDelay ? "SÍ (Ajuste requerido en ETL)" : "NO (Estable)"}\`
 *   **Tasa de No Conformidad:** \`${finalMetrics.riskScore}%\`
+ 
+### 🧬 ADN del Negocio Descubierto ("Business DNA")
+*   **Industria:** \`${dna.industria}\`
+*   **Proceso Principal:** \`${dna.procesoPrincipal}\`
+*   **Subprocesos Clave:** \`${dna.subprocesos.join(", ")}\`
+*   **Entidades Principales:** \`${dna.entidadesPrincipales.join(", ")}\`
+*   **Objetivos Estratégicos Inferidos por IA:**
+${dna.objetivosInferidos.map(o => `    *   ${o}`).join("\n")}
  
 #### 🛠️ Próximos Pasos en el Tratamiento de Datos (ETL)
 Como parte del proceso, he notado que el conjunto de datos de calidad mejoraría con una rápida limpieza de IDs duplicados y calibración de tolerancias.
@@ -469,11 +526,15 @@ Si deseas ver cómo se realiza la limpieza y calibración en tiempo real en la c
     handleAddLog("Integridad", `[ETL ÉXITO] Saneamiento completo para tipología: ${typologyDesc}`);
 
     // 3. Improve Metrics State
-    setMetrics(prev => ({
-      ...prev,
+    const updatedMetrics = {
       efficiency: 98.6,
       warehouseDelay: false,
+    };
+    setMetrics(prev => ({
+      ...prev,
+      ...updatedMetrics,
     }));
+    handleUpdateMetrics(updatedMetrics);
 
     // 4. Append AI Agent Follow-up Message
     const formattedTime = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) + " PM";
@@ -687,6 +748,7 @@ Una vez cargados, podremos realizar limpiezas ETL en caliente, ver dashboards ej
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}
         onCloseSidebar={() => setSidebarOpen(false)}
+        metrics={metrics}
       />
 
       {/* Top Header tools bar */}

@@ -1,3 +1,11 @@
+export interface BusinessDNA {
+  industria: string;
+  procesoPrincipal: string;
+  subprocesos: string[];
+  entidadesPrincipales: string[];
+  objetivosInferidos: string[];
+}
+
 export interface DataMetrics {
   revenue: number;
   users: number;
@@ -5,6 +13,7 @@ export interface DataMetrics {
   efficiency: number;
   warehouseDelay: boolean;
   activeDataset: string;
+  businessDNA?: BusinessDNA;
 }
 
 export interface AgentState {

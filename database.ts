@@ -7,6 +7,14 @@ import { createClient } from "@insforge/sdk";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
+export interface BusinessDNA {
+  industria: string;
+  procesoPrincipal: string;
+  subprocesos: string[];
+  entidadesPrincipales: string[];
+  objetivosInferidos: string[];
+}
+
 // Interfaces matching frontend structures
 export interface DBMetrics {
   revenue: number;
@@ -15,6 +23,7 @@ export interface DBMetrics {
   efficiency: number;
   warehouseDelay: boolean;
   activeDataset: string;
+  businessDNA?: BusinessDNA;
 }
 
 export interface DBChatMessage {
@@ -145,7 +154,8 @@ class PostgresDB implements IDatabase {
           risk_score DECIMAL(5,2),
           efficiency DECIMAL(5,2),
           warehouse_delay BOOLEAN,
-          active_dataset VARCHAR(255)
+          active_dataset VARCHAR(255),
+          business_dna TEXT
         );
       `);
 
@@ -197,8 +207,8 @@ class PostgresDB implements IDatabase {
       const metricsRes = await client.query("SELECT COUNT(*) FROM active_metrics");
       if (parseInt(metricsRes.rows[0].count, 10) === 0) {
         await client.query(`
-          INSERT INTO active_metrics (revenue, users, risk_score, efficiency, warehouse_delay, active_dataset)
-          VALUES (0, 0, 0.0, 0.0, FALSE, 'Ninguno')
+          INSERT INTO active_metrics (revenue, users, risk_score, efficiency, warehouse_delay, active_dataset, business_dna)
+          VALUES (0, 0, 0.0, 0.0, FALSE, 'Ninguno', NULL)
         `);
       }
 
@@ -247,6 +257,14 @@ class PostgresDB implements IDatabase {
       };
     }
     const row = res.rows[0];
+    let businessDNA: BusinessDNA | undefined = undefined;
+    if (row.business_dna) {
+      try {
+        businessDNA = JSON.parse(row.business_dna);
+      } catch (e) {
+        console.warn("Failed to parse business DNA:", e);
+      }
+    }
     return {
       revenue: parseInt(row.revenue, 10),
       users: parseInt(row.users, 10),
@@ -254,18 +272,20 @@ class PostgresDB implements IDatabase {
       efficiency: parseFloat(row.efficiency),
       warehouseDelay: row.warehouse_delay,
       activeDataset: row.active_dataset,
+      businessDNA,
     };
   }
 
   async updateMetrics(metrics: Partial<DBMetrics>): Promise<DBMetrics> {
     const current = await this.getMetrics();
     const updated = { ...current, ...metrics };
+    const dnaStr = updated.businessDNA ? JSON.stringify(updated.businessDNA) : null;
     
     await this.pool!.query(`
       UPDATE active_metrics 
-      SET revenue = $1, users = $2, risk_score = $3, efficiency = $4, warehouse_delay = $5, active_dataset = $6
+      SET revenue = $1, users = $2, risk_score = $3, efficiency = $4, warehouse_delay = $5, active_dataset = $6, business_dna = $7
       WHERE id = (SELECT id FROM active_metrics ORDER BY id DESC LIMIT 1)
-    `, [updated.revenue, updated.users, updated.riskScore, updated.efficiency, updated.warehouseDelay, updated.activeDataset]);
+    `, [updated.revenue, updated.users, updated.riskScore, updated.efficiency, updated.warehouseDelay, updated.activeDataset, dnaStr]);
 
     return updated;
   }
@@ -799,6 +819,14 @@ class InsforgeDB implements IDatabase {
       };
     }
     const row = data[0];
+    let businessDNA: BusinessDNA | undefined = undefined;
+    if (row.business_dna) {
+      try {
+        businessDNA = JSON.parse(row.business_dna);
+      } catch (e) {
+        console.warn("Failed to parse business DNA from InsForge:", e);
+      }
+    }
     return {
       revenue: parseInt(row.revenue, 10),
       users: parseInt(row.users, 10),
@@ -806,12 +834,14 @@ class InsforgeDB implements IDatabase {
       efficiency: parseFloat(row.efficiency),
       warehouseDelay: row.warehouse_delay,
       activeDataset: row.active_dataset,
+      businessDNA,
     };
   }
 
   async updateMetrics(metrics: Partial<DBMetrics>): Promise<DBMetrics> {
     const current = await this.getMetrics();
     const updated = { ...current, ...metrics };
+    const dnaStr = updated.businessDNA ? JSON.stringify(updated.businessDNA) : null;
     
     const { data: latestRows } = await this.client.database.from("active_metrics").select("id").order("id", { ascending: false }).limit(1);
     if (latestRows && latestRows.length > 0) {
@@ -822,7 +852,8 @@ class InsforgeDB implements IDatabase {
         risk_score: updated.riskScore,
         efficiency: updated.efficiency,
         warehouse_delay: updated.warehouseDelay,
-        active_dataset: updated.activeDataset
+        active_dataset: updated.activeDataset,
+        business_dna: dnaStr
       }).match({ id });
     } else {
       await this.client.database.from("active_metrics").insert([{
@@ -831,7 +862,8 @@ class InsforgeDB implements IDatabase {
         risk_score: updated.riskScore,
         efficiency: updated.efficiency,
         warehouse_delay: updated.warehouseDelay,
-        active_dataset: updated.activeDataset
+        active_dataset: updated.activeDataset,
+        business_dna: dnaStr
       }]);
     }
 

@@ -11,6 +11,8 @@ import {
   LogOut
 } from "lucide-react";
 
+import { DataMetrics } from "../types";
+
 interface SidebarProps {
   activeView: "hub" | "etl" | "dashboard" | "chat";
   onViewChange: (view: "hub" | "etl" | "dashboard" | "chat") => void;
@@ -22,6 +24,7 @@ interface SidebarProps {
   onLogout?: () => void;
   sidebarOpen?: boolean;
   onCloseSidebar?: () => void;
+  metrics?: DataMetrics;
 }
 
 export default function Sidebar({ 
@@ -34,7 +37,8 @@ export default function Sidebar({
   currentUser,
   onLogout,
   sidebarOpen,
-  onCloseSidebar
+  onCloseSidebar,
+  metrics
 }: SidebarProps) {
   return (
     <>
@@ -90,17 +94,32 @@ export default function Sidebar({
           <span>Espacio ETL</span>
         </button>
 
-        <button
-          onClick={() => { onViewChange("dashboard"); onCloseSidebar?.(); }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded text-sm text-left font-medium transition-all ${
-            activeView === "dashboard"
-              ? "text-[#b6c4ff] bg-[#2d3449]/50 border-r-2 border-[#b6c4ff]"
-              : "text-[#c3c5d7] hover:text-[#dae2fd] hover:bg-[#2d3449]/30"
-          }`}
-        >
-          <BarChart3 className="w-4 h-4 text-inherit" />
-          <span>Dashboard Ejecutivo</span>
-        </button>
+        {metrics?.businessDNA ? (
+          <button
+            onClick={() => { onViewChange("dashboard"); onCloseSidebar?.(); }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded text-sm text-left font-medium transition-all ${
+              activeView === "dashboard"
+                ? "text-[#b6c4ff] bg-[#2d3449]/50 border-r-2 border-[#b6c4ff]"
+                : "text-[#c3c5d7] hover:text-[#dae2fd] hover:bg-[#2d3449]/30"
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 text-inherit text-[#4edea3]" />
+            <span>Dashboard Ejecutivo</span>
+          </button>
+        ) : (
+          <div
+            title="Para acceder, la IA debe comprender su negocio primero (Cargue un dataset en el Hub de Datos)"
+            className="w-full flex items-center justify-between px-4 py-3 rounded text-sm text-left font-medium text-[#c3c5d7]/40 cursor-not-allowed select-none bg-white/5 border border-dashed border-white/5 relative group"
+          >
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-4 h-4 text-inherit" />
+              <span>Dashboard Ejecutivo</span>
+            </div>
+            <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 uppercase tracking-widest flex items-center gap-1">
+              🔒 Bloqueado
+            </span>
+          </div>
+        )}
 
         <button
           onClick={() => { onViewChange("chat"); onCloseSidebar?.(); }}

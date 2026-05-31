@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS active_metrics (
     risk_score DECIMAL(5,2) NOT NULL DEFAULT 0.00, -- Tasa de No Conformidad (%)
     efficiency DECIMAL(5,2) NOT NULL DEFAULT 0.00, -- Tasa de Conformidad (%)
     warehouse_delay BOOLEAN NOT NULL DEFAULT FALSE,  -- Alerta de Desviación de Tolerancia
-    active_dataset VARCHAR(255) NOT NULL DEFAULT 'Ninguno' -- Nombre del Dataset Activo
+    active_dataset VARCHAR(255) NOT NULL DEFAULT 'Ninguno', -- Nombre del Dataset Activo
+    business_dna TEXT                            -- Perfil de Business DNA estructurado en JSON
 );
 
 COMMENT ON TABLE active_metrics IS 'Almacena las métricas de calidad en tiempo real importadas temporalmente durante el ETL.';
@@ -81,7 +82,8 @@ CREATE TABLE IF NOT EXISTS dashboard_reports (
     users INT,
     risk_score DECIMAL(5,2),
     efficiency DECIMAL(5,2),
-    timestamp VARCHAR(100) NOT NULL
+    timestamp VARCHAR(100) NOT NULL,
+    business_dna TEXT
 );
 
 COMMENT ON TABLE dashboard_reports IS 'Historial de reportes ejecutivos de calidad consolidados con datos empresariales.';
