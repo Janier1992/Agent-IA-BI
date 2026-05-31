@@ -36,6 +36,7 @@ export default function ETLWorkspacePanel({
   const [cpuUsage, setCpuUsage] = useState(68);
   const [memoryUsage, setMemoryUsage] = useState(2.4);
   const [localLogs, setLocalLogs] = useState<ValidationLog[]>(logs);
+  const [showAgents, setShowAgents] = useState(true);
 
   // ETL Status states: 'idle' (ready to run), 'extracting', 'transforming', 'loading', 'completed'
   const [etlStatus, setEtlStatus] = useState<'idle' | 'extracting' | 'transforming' | 'loading' | 'completed'>('idle');
@@ -285,13 +286,21 @@ export default function ETLWorkspacePanel({
                 <h3 className="text-sm font-bold text-[#dae2fd] uppercase tracking-wider">Flujo Neuronal de Limpieza</h3>
                 <p className="text-[11px] text-[#c3c5d7] mt-0.5">Catálogo activo: {metrics.activeDataset}</p>
               </div>
-            <div>
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/25 text-[10px] font-bold font-sans">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
-                MODO AUTÓNOMO EN LINUX/POSTGRES
-              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAgents(!showAgents)}
+                  className="px-3 py-1 bg-[#050b14] hover:bg-[#2a5ee8]/10 text-[10px] font-bold font-mono border border-white/10 rounded text-[#b6c4ff] flex items-center gap-1 transition-all active:scale-95 duration-100 cursor-pointer"
+                >
+                  <Cpu className="w-3 h-3 text-[#b6c4ff]" />
+                  <span>{showAgents ? "Ocultar Agentes" : "Mostrar Agentes"}</span>
+                </button>
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/25 text-[10px] font-bold font-sans">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
+                  MODO AUTÓNOMO EN LINUX/POSTGRES
+                </span>
+              </div>
             </div>
-          </div>
 
           {/* SVG Diagram Connections and Animated Nodes */}
           <div className="relative flex-1 w-full h-full min-h-[220px]">
@@ -389,127 +398,129 @@ export default function ETLWorkspacePanel({
         </section>
 
         {/* Computing resource metrics (320px) */}
-        <aside className="hidden xl:flex w-[320px] bg-[#131b2e]/60 border border-white/10 rounded-xl overflow-y-auto p-4 flex flex-col justify-between shrink-0">
-          <div>
-            <h3 className="text-sm font-bold text-[#dae2fd] uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-[#b6c4ff]" />
-              Agentes Activos
-            </h3>
+        {showAgents && (
+          <aside className="hidden xl:flex w-[320px] bg-[#131b2e]/60 border border-white/10 rounded-xl overflow-y-auto p-4 flex flex-col justify-between shrink-0">
+            <div>
+              <h3 className="text-sm font-bold text-[#dae2fd] uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Layers className="w-5 h-5 text-[#b6c4ff]" />
+                Agentes Activos
+              </h3>
 
-            <div className="space-y-3.5">
-              {/* Orchestrator Agent */}
-              <div className="bg-[#171f33] border-t-2 border-[#2a5ee8] p-3.5 rounded-lg space-y-1.5 shadow-md">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Orquestador</h4>
-                    <p className="text-[9px] text-[#c3c5d7] font-mono">COORDINACIÓN Y PLANIFICACIÓN</p>
-                  </div>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
-                    etlStatus !== 'idle' && etlStatus !== 'completed'
-                      ? 'bg-[#2a5ee8]/10 text-[#b6c4ff] border-[#2a5ee8]/30 animate-pulse'
-                      : 'bg-white/5 text-[#8d90a0] border-white/5'
-                  }`}>
-                    {etlStatus !== 'idle' && etlStatus !== 'completed' ? "PLANIFICANDO" : "INACTIVO"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Data Engineer Agent (ETL) */}
-              <div className="bg-[#171f33] border-t-2 border-[#10b981] p-3.5 rounded-lg space-y-2.5 shadow-md">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Ingeniero (ETL)</h4>
-                    <p className="text-[9px] text-[#c3c5d7] font-mono">LIMPIEZA Y ESQUEMAS</p>
-                  </div>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
-                    etlStatus !== 'idle' && etlStatus !== 'completed'
-                      ? 'bg-[#10b981]/10 text-[#4edea3] border-[#10b981]/30 animate-pulse'
-                      : 'bg-white/5 text-[#8d90a0] border-white/5'
-                  }`}>
-                    {etlStatus !== 'idle' && etlStatus !== 'completed' ? "TRABAJANDO" : "INACTIVO"}
-                  </span>
-                </div>
-                {etlStatus !== 'idle' && (
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-[10px] text-[#c3c5d7]">
-                      <span>Deduplicación & Limpieza</span>
-                      <span className="text-white font-mono">{etlProgress >= 55 ? "100%" : etlStatus === 'extracting' ? "45%" : "0%"}</span>
+              <div className="space-y-3.5">
+                {/* Orchestrator Agent */}
+                <div className="bg-[#171f33] border-t-2 border-[#2a5ee8] p-3.5 rounded-lg space-y-1.5 shadow-md">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Orquestador</h4>
+                      <p className="text-[9px] text-[#c3c5d7] font-mono">COORDINACIÓN Y PLANIFICACIÓN</p>
                     </div>
-                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#10b981] transition-all duration-300" style={{ width: etlProgress >= 55 ? "100%" : etlStatus === 'extracting' ? "45%" : "0%" }}></div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
+                      etlStatus !== 'idle' && etlStatus !== 'completed'
+                        ? 'bg-[#2a5ee8]/10 text-[#b6c4ff] border-[#2a5ee8]/30 animate-pulse'
+                        : 'bg-white/5 text-[#8d90a0] border-white/5'
+                    }`}>
+                      {etlStatus !== 'idle' && etlStatus !== 'completed' ? "PLANIFICANDO" : "INACTIVO"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Data Engineer Agent (ETL) */}
+                <div className="bg-[#171f33] border-t-2 border-[#10b981] p-3.5 rounded-lg space-y-2.5 shadow-md">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Ingeniero (ETL)</h4>
+                      <p className="text-[9px] text-[#c3c5d7] font-mono">LIMPIEZA Y ESQUEMAS</p>
                     </div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
+                      etlStatus !== 'idle' && etlStatus !== 'completed'
+                        ? 'bg-[#10b981]/10 text-[#4edea3] border-[#10b981]/30 animate-pulse'
+                        : 'bg-white/5 text-[#8d90a0] border-white/5'
+                    }`}>
+                      {etlStatus !== 'idle' && etlStatus !== 'completed' ? "TRABAJANDO" : "INACTIVO"}
+                    </span>
                   </div>
-                )}
-              </div>
-
-              {/* Scientist Agent */}
-              <div className="bg-[#171f33] border-t-2 border-[#a855f7] p-3.5 rounded-lg space-y-1.5 shadow-md">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Científico</h4>
-                    <p className="text-[9px] text-[#c3c5d7] font-mono">MODELOS Y ANOMALÍAS</p>
-                  </div>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
-                    etlStatus === 'transforming'
-                      ? 'bg-[#a855f7]/10 text-[#c084fc] border-[#a855f7]/30 animate-pulse'
-                      : 'bg-white/5 text-[#8d90a0] border-white/5'
-                  }`}>
-                    {etlStatus === 'transforming' ? "TRANSFORMANDO" : "INACTIVO"}
-                  </span>
+                  {etlStatus !== 'idle' && (
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-[10px] text-[#c3c5d7]">
+                        <span>Deduplicación & Limpieza</span>
+                        <span className="text-white font-mono">{etlProgress >= 55 ? "100%" : etlStatus === 'extracting' ? "45%" : "0%"}</span>
+                      </div>
+                      <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-[#10b981] transition-all duration-300" style={{ width: etlProgress >= 55 ? "100%" : etlStatus === 'extracting' ? "45%" : "0%" }}></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Researcher Agent */}
-              <div className="bg-[#171f33] border-t-2 border-[#ec4899] p-3.5 rounded-lg space-y-1.5 shadow-md">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Investigador</h4>
-                    <p className="text-[9px] text-[#c3c5d7] font-mono">BÚSQUEDA Y REFERENCIAS</p>
+                {/* Scientist Agent */}
+                <div className="bg-[#171f33] border-t-2 border-[#a855f7] p-3.5 rounded-lg space-y-1.5 shadow-md">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Científico</h4>
+                      <p className="text-[9px] text-[#c3c5d7] font-mono">MODELOS Y ANOMALÍAS</p>
+                    </div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
+                      etlStatus === 'transforming'
+                        ? 'bg-[#a855f7]/10 text-[#c084fc] border-[#a855f7]/30 animate-pulse'
+                        : 'bg-white/5 text-[#8d90a0] border-white/5'
+                    }`}>
+                      {etlStatus === 'transforming' ? "TRANSFORMANDO" : "INACTIVO"}
+                    </span>
                   </div>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
-                    etlStatus === 'extracting'
-                      ? 'bg-[#ec4899]/10 text-[#f472b6] border-[#ec4899]/30 animate-pulse'
-                      : 'bg-white/5 text-[#8d90a0] border-white/5'
-                  }`}>
-                    {etlStatus === 'extracting' ? "EXTRAYENDO" : "INACTIVO"}
-                  </span>
                 </div>
-              </div>
 
-              {/* Business Analyst Agent */}
-              <div className="bg-[#171f33] border-t-2 border-[#eab308] p-3.5 rounded-lg space-y-2 shadow-md">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Analítico</h4>
-                    <p className="text-[9px] text-[#c3c5d7] font-mono">DASHBOARDS Y KPIs</p>
+                {/* Researcher Agent */}
+                <div className="bg-[#171f33] border-t-2 border-[#ec4899] p-3.5 rounded-lg space-y-1.5 shadow-md">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Investigador</h4>
+                      <p className="text-[9px] text-[#c3c5d7] font-mono">BÚSQUEDA Y REFERENCIAS</p>
+                    </div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
+                      etlStatus === 'extracting'
+                        ? 'bg-[#ec4899]/10 text-[#f472b6] border-[#ec4899]/30 animate-pulse'
+                        : 'bg-white/5 text-[#8d90a0] border-white/5'
+                    }`}>
+                      {etlStatus === 'extracting' ? "EXTRAYENDO" : "INACTIVO"}
+                    </span>
                   </div>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
-                    etlStatus === 'loading' || etlStatus === 'completed'
-                      ? 'bg-[#eab308]/10 text-[#facc15] border-[#eab308]/30 animate-pulse'
-                      : 'bg-white/5 text-[#8d90a0] border-white/5'
-                  }`}>
-                    {etlStatus === 'loading' ? "INTEGRANDO KPIs" : etlStatus === 'completed' ? "COMPLETADO ✓" : "INACTIVO"}
-                  </span>
+                </div>
+
+                {/* Business Analyst Agent */}
+                <div className="bg-[#171f33] border-t-2 border-[#eab308] p-3.5 rounded-lg space-y-2 shadow-md">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-xs font-bold text-[#dae2fd] uppercase tracking-wider">Agente Analítico</h4>
+                      <p className="text-[9px] text-[#c3c5d7] font-mono">DASHBOARDS Y KPIs</p>
+                    </div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border transition-all ${
+                      etlStatus === 'loading' || etlStatus === 'completed'
+                        ? 'bg-[#eab308]/10 text-[#facc15] border-[#eab308]/30 animate-pulse'
+                        : 'bg-white/5 text-[#8d90a0] border-white/5'
+                    }`}>
+                      {etlStatus === 'loading' ? "INTEGRANDO KPIs" : etlStatus === 'completed' ? "COMPLETADO ✓" : "INACTIVO"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* CPU / MEM Resource Meters */}
-          <div className="mt-6 pt-4 border-t border-white/5">
-            <h5 className="text-[10px] font-bold text-[#c3c5d7] uppercase tracking-wider mb-2">Consumo de Cómputo del Kernel</h5>
-            <div className="grid grid-cols-2 gap-2 text-center">
-              <div className="bg-[#171f33] p-2 rounded border border-white/5">
-                <p className="text-[9px] text-[#c3c5d7] uppercase">CARGA CPU</p>
-                <p className="text-base font-bold text-[#b6c4ff] font-mono">{cpuUsage}%</p>
-              </div>
-              <div className="bg-[#171f33] p-2 rounded border border-white/5">
-                <p className="text-[9px] text-[#c3c5d7] uppercase">MEMORIA RAM</p>
-                <p className="text-base font-bold text-[#4edea3] font-mono">{memoryUsage} TB</p>
+            {/* CPU / MEM Resource Meters */}
+            <div className="mt-6 pt-4 border-t border-white/5">
+              <h5 className="text-[10px] font-bold text-[#c3c5d7] uppercase tracking-wider mb-2">Consumo de Cómputo del Kernel</h5>
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="bg-[#171f33] p-2 rounded border border-white/5">
+                  <p className="text-[9px] text-[#c3c5d7] uppercase">CARGA CPU</p>
+                  <p className="text-base font-bold text-[#b6c4ff] font-mono">{cpuUsage}%</p>
+                </div>
+                <div className="bg-[#171f33] p-2 rounded border border-white/5">
+                  <p className="text-[9px] text-[#c3c5d7] uppercase">MEMORIA RAM</p>
+                  <p className="text-base font-bold text-[#4edea3] font-mono">{memoryUsage} TB</p>
+                </div>
               </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
       </div>
 
       {/* System interactive Kernel Console section (Bottom 200px) */}

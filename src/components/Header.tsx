@@ -19,6 +19,7 @@ interface HeaderProps {
   onRequestPermission: () => void;
   onTestNotification: (delayed?: boolean) => void;
   onToggleSidebar?: () => void;
+  sidebarOpen?: boolean;
 }
 
 export default function Header({ 
@@ -30,19 +31,20 @@ export default function Header({
   notificationPermission,
   onRequestPermission,
   onTestNotification,
-  onToggleSidebar
+  onToggleSidebar,
+  sidebarOpen
 }: HeaderProps) {
   const [showAlertsMenu, setShowAlertsMenu] = useState(false);
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-[280px] w-full lg:w-[calc(100%-280px)] h-[72px] bg-[#0b1326]/80 backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-4 sm:px-6 z-40">
+    <header className={`fixed top-0 right-0 left-0 ${sidebarOpen ? "lg:left-[280px] lg:w-[calc(100%-280px)]" : "lg:left-0 lg:w-full"} h-[72px] bg-[#0b1326]/80 backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-4 sm:px-6 z-40 transition-all duration-300`}>
       {/* Search Input Section & Branding */}
       <div className="flex items-center gap-2 sm:gap-6">
         {onToggleSidebar && (
           <button 
             onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-lg text-[#c3c5d7] hover:text-[#b6c4ff] hover:bg-white/5 transition-all cursor-pointer"
-            title="Abrir menú"
+            className="p-2 rounded-lg text-[#c3c5d7] hover:text-[#b6c4ff] hover:bg-white/5 transition-all cursor-pointer mr-1"
+            title={sidebarOpen ? "Ocultar menú" : "Mostrar menú"}
           >
             <Menu className="w-5 h-5" />
           </button>

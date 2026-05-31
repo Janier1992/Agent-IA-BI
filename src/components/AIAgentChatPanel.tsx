@@ -42,6 +42,7 @@ export default function AIAgentChatPanel({
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [businessDesc, setBusinessDesc] = useState("");
+  const [showAgents, setShowAgents] = useState(true);
   const [activeFilters, setActiveFilters] = useState<string[]>([
     "Origen: Cloud",
     "Métrica: General",
@@ -152,7 +153,23 @@ export default function AIAgentChatPanel({
     <div className="flex flex-1 overflow-hidden h-full w-full p-4 sm:p-6 pb-0">
       
       {/* LEFT CHAT COLLUMN (Flexible) */}
-      <div className="flex-1 flex flex-col justify-between max-w-4xl mx-auto border-r-0 xl:border-r border-white/5 pr-0 xl:pr-6 h-full relative">
+      <div className={`flex-1 flex flex-col justify-between max-w-4xl mx-auto ${showAgents ? "border-r-0 xl:border-r border-white/5 pr-0 xl:pr-6" : ""} h-full relative`}>
+        
+        {/* Toggle Multi-Agent Control Toolbar */}
+        <div className="flex justify-between items-center bg-[#131b2e]/30 p-3 border border-white/5 rounded-xl mb-4 shrink-0">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#b6c4ff] uppercase tracking-wider font-mono">
+            <Bot className="w-4 h-4 text-[#4edea3]" />
+            <span>Canal de Consulta Directiva</span>
+          </div>
+          <button 
+            type="button"
+            onClick={() => setShowAgents(!showAgents)}
+            className="px-3 py-1.5 bg-[#050b14] hover:bg-[#2a5ee8]/10 text-xs font-bold font-mono border border-white/10 rounded-lg text-[#b6c4ff] flex items-center gap-1.5 transition-all active:scale-95 duration-100 cursor-pointer"
+          >
+            <Bot className="w-3.5 h-3.5" />
+            <span>{showAgents ? "Ocultar Agentes" : "Mostrar Agentes"}</span>
+          </button>
+        </div>
         
         {/* Chat Scrolling body area */}
         <div className="flex-1 overflow-y-auto pr-2 mb-4 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
@@ -408,128 +425,130 @@ export default function AIAgentChatPanel({
       </div>
 
       {/* RIGHT MULTI-AGENT CONTROL PANEL (320px) */}
-      <aside className="hidden xl:flex w-[320px] bg-[#131b2e]/30 border-l border-white/10 flex flex-col h-full shrink-0 select-none ml-6">
-        {/* Title */}
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-xs font-bold text-[#dae2fd] uppercase tracking-widest flex items-center gap-2">
-            <Bot className="w-4.5 h-4.5 text-[#b6c4ff]" />
-            ESTRATEGIA MULTI-AGENTE
-          </h3>
-          <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#2a5ee8]/15 border border-[#2a5ee8]/30 text-[9px] text-[#b6c4ff] font-extrabold animate-pulse">
-            24/7 ONLINE
-          </span>
-        </div>
+      {showAgents && (
+        <aside className="hidden xl:flex w-[320px] bg-[#131b2e]/30 border-l border-white/10 flex flex-col h-full shrink-0 select-none ml-6">
+          {/* Title */}
+          <div className="p-4 border-b border-white/10 flex items-center justify-between">
+            <h3 className="text-xs font-bold text-[#dae2fd] uppercase tracking-widest flex items-center gap-2">
+              <Bot className="w-4.5 h-4.5 text-[#b6c4ff]" />
+              ESTRATEGIA MULTI-AGENTE
+            </h3>
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#2a5ee8]/15 border border-[#2a5ee8]/30 text-[9px] text-[#b6c4ff] font-extrabold animate-pulse">
+              24/7 ONLINE
+            </span>
+          </div>
 
-        {/* Scrollable list of active agents */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-          
-          {/* Agent list mapping */}
-          {(agents && agents.length > 0 ? agents : [
-            { id: "orchestrator", name: "Agente Orquestador", role: "COORDINACIÓN Y PLANIFICACIÓN", status: "thinking", cognitiveLoad: 48, avatarColor: "#2a5ee8" },
-            { id: "scientist", name: "Agente Científico", role: "MODELOS Y PREDICCIÓN", status: "idle", cognitiveLoad: 12, avatarColor: "#a855f7" },
-            { id: "researcher", name: "Agente Investigador", role: "BÚSQUEDA Y CONTEXTO", status: "idle", cognitiveLoad: 8, avatarColor: "#ec4899" },
-            { id: "data_engineer", name: "Agente de Ingeniería", role: "MANIPULACIÓN Y ETL", status: "processing", cognitiveLoad: 72, avatarColor: "#10b981" },
-            { id: "analyst", name: "Agente Analítico", role: "KPIs Y DASHBOARDS", status: "idle", cognitiveLoad: 20, avatarColor: "#eab308" }
-          ]).map((agent) => (
-            <div 
-              key={agent.id} 
-              className="p-3 bg-[#171f33]/80 border border-white/10 rounded-xl space-y-2 shadow-sm transition-all hover:border-white/15"
-            >
-              <div className="flex items-center gap-2.5">
-                {/* Visual Avatar with Pulse ring */}
-                <div 
-                  className="w-8.5 h-8.5 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold font-sans relative"
-                  style={{ backgroundColor: `${agent.avatarColor}20`, border: `1px solid ${agent.avatarColor}40` }}
-                >
-                  <span style={{ color: agent.avatarColor }}>{agent.name.split(" ")[1]?.[0] || agent.name[0]}</span>
-                  {agent.status !== "idle" && (
-                    <span 
-                      className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-[#0c1322]" 
-                      style={{ 
-                        backgroundColor: agent.status === "thinking" ? "#2a5ee8" : agent.status === "processing" ? "#10b981" : "#eab308",
-                        animation: "ping 1.5s infinite"
-                      }}
-                    ></span>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs font-bold text-[#dae2fd] truncate">{agent.name}</p>
-                    <span 
-                      className="text-[8px] font-extrabold uppercase font-mono px-1 py-0.5 rounded"
-                      style={{ 
-                        color: agent.status === "idle" ? "#8d90a0" : agent.status === "thinking" ? "#b6c4ff" : agent.status === "processing" ? "#4edea3" : "#eab308",
-                        backgroundColor: agent.status === "idle" ? "rgba(255,255,255,0.05)" : agent.status === "thinking" ? "rgba(42,94,232,0.1)" : "rgba(16,185,129,0.1)"
-                      }}
-                    >
-                      {agent.status === "idle" ? "DORMIDO" : agent.status === "thinking" ? "PENSANDO" : "PROCESANDO"}
-                    </span>
-                  </div>
-                  <p className="text-[8.5px] text-[#8d90a0] font-semibold tracking-wider uppercase truncate mt-0.5">{agent.role}</p>
-                </div>
-              </div>
-
-              {/* Fluctuating load meter gauge */}
-              <div className="space-y-1 pt-1">
-                <div className="flex justify-between text-[9px] text-[#c3c5d7] font-mono">
-                  <span>Carga Cognitiva</span>
-                  <span className="font-bold">{agent.cognitiveLoad}%</span>
-                </div>
-                <div className="w-full h-1 bg-[#2d3449]/50 rounded-full overflow-hidden">
+          {/* Scrollable list of active agents */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            
+            {/* Agent list mapping */}
+            {(agents && agents.length > 0 ? agents : [
+              { id: "orchestrator", name: "Agente Orquestador", role: "COORDINACIÓN Y PLANIFICACIÓN", status: "thinking", cognitiveLoad: 48, avatarColor: "#2a5ee8" },
+              { id: "scientist", name: "Agente Científico", role: "MODELOS Y PREDICCIÓN", status: "idle", cognitiveLoad: 12, avatarColor: "#a855f7" },
+              { id: "researcher", name: "Agente Investigador", role: "BÚSQUEDA Y CONTEXTO", status: "idle", cognitiveLoad: 8, avatarColor: "#ec4899" },
+              { id: "data_engineer", name: "Agente de Ingeniería", role: "MANIPULACIÓN Y ETL", status: "processing", cognitiveLoad: 72, avatarColor: "#10b981" },
+              { id: "analyst", name: "Agente Analítico", role: "KPIs Y DASHBOARDS", status: "idle", cognitiveLoad: 20, avatarColor: "#eab308" }
+            ]).map((agent) => (
+              <div 
+                key={agent.id} 
+                className="p-3 bg-[#171f33]/80 border border-white/10 rounded-xl space-y-2 shadow-sm transition-all hover:border-white/15"
+              >
+                <div className="flex items-center gap-2.5">
+                  {/* Visual Avatar with Pulse ring */}
                   <div 
-                    className="h-full rounded-full transition-all duration-700" 
-                    style={{ 
-                      width: `${agent.cognitiveLoad}%`, 
-                      backgroundColor: agent.avatarColor 
-                    }}
-                  ></div>
+                    className="w-8.5 h-8.5 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold font-sans relative"
+                    style={{ backgroundColor: `${agent.avatarColor}20`, border: `1px solid ${agent.avatarColor}40` }}
+                  >
+                    <span style={{ color: agent.avatarColor }}>{agent.name.split(" ")[1]?.[0] || agent.name[0]}</span>
+                    {agent.status !== "idle" && (
+                      <span 
+                        className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-[#0c1322]" 
+                        style={{ 
+                          backgroundColor: agent.status === "thinking" ? "#2a5ee8" : agent.status === "processing" ? "#10b981" : "#eab308",
+                          animation: "ping 1.5s infinite"
+                        }}
+                      ></span>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs font-bold text-[#dae2fd] truncate">{agent.name}</p>
+                      <span 
+                        className="text-[8px] font-extrabold uppercase font-mono px-1 py-0.5 rounded"
+                        style={{ 
+                          color: agent.status === "idle" ? "#8d90a0" : agent.status === "thinking" ? "#b6c4ff" : agent.status === "processing" ? "#4edea3" : "#eab308",
+                          backgroundColor: agent.status === "idle" ? "rgba(255,255,255,0.05)" : agent.status === "thinking" ? "rgba(42,94,232,0.1)" : "rgba(16,185,129,0.1)"
+                        }}
+                      >
+                        {agent.status === "idle" ? "DORMIDO" : agent.status === "thinking" ? "PENSANDO" : "PROCESANDO"}
+                      </span>
+                    </div>
+                    <p className="text-[8.5px] text-[#8d90a0] font-semibold tracking-wider uppercase truncate mt-0.5">{agent.role}</p>
+                  </div>
+                </div>
+
+                {/* Fluctuating load meter gauge */}
+                <div className="space-y-1 pt-1">
+                  <div className="flex justify-between text-[9px] text-[#c3c5d7] font-mono">
+                    <span>Carga Cognitiva</span>
+                    <span className="font-bold">{agent.cognitiveLoad}%</span>
+                  </div>
+                  <div className="w-full h-1 bg-[#2d3449]/50 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-700" 
+                      style={{ 
+                        width: `${agent.cognitiveLoad}%`, 
+                        backgroundColor: agent.avatarColor 
+                      }}
+                    ></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {/* Real-time Cooperative logs box */}
-          <section className="bg-[#020617] border border-white/10 rounded-xl p-3.5 space-y-2 h-44 overflow-hidden flex flex-col shadow-inner select-none font-mono text-[9px] leading-relaxed text-[#c3c5d7]">
-            <div className="flex items-center gap-1 text-[9.5px] font-bold text-[#b6c4ff] border-b border-white/5 pb-1 uppercase shrink-0">
-              <Terminal className="w-3 h-3 text-[#2a5ee8]" />
-              <span>COOPERATION_STREAM</span>
-            </div>
-            <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
-              {metrics.businessDNA ? (
-                <>
-                  <p className="text-[#8d90a0]"><span className="text-[#a855f7] font-bold">[Científico]</span> ADN detectado: {metrics.businessDNA.industria}.</p>
-                  <p className="text-[#8d90a0]"><span className="text-[#2a5ee8] font-bold">[Orquestador]</span> Proceso: {metrics.businessDNA.procesoPrincipal}.</p>
-                  <p className="text-[#8d90a0]"><span className="text-[#eab308] font-bold">[Analítico]</span> KPIs: {metrics.businessDNA.subprocesos.slice(0, 2).join(", ")}.</p>
-                  <p className="text-[#8d90a0]"><span className="text-[#10b981] font-bold">[Ingeniería]</span> Indexadas: {metrics.businessDNA.entidadesPrincipales.join(", ")}.</p>
-                  <p className="font-semibold text-[#4edea3]">✓ Business DNA cargado en base de datos.</p>
-                </>
-              ) : (
-                <>
-                  <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#2a5ee8] font-bold">[Orquestador]</span> Escaneando endpoints activos en InsForge...</p>
-                  <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#10b981] font-bold">[Data Eng]</span> Conector seguro establecido. PostgreSQL listado.</p>
-                  <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#a855f7] font-bold">[Científico]</span> Modelo deductivo listo. Calibración en espera.</p>
-                  <p className="hover:text-white transition-colors duration-75 text-[#8d90a0] font-semibold text-[#4edea3]">✓ Pipeline multi-agente 24/7 operando satisfactoriamente.</p>
-                </>
-              )}
-            </div>
-          </section>
+            {/* Real-time Cooperative logs box */}
+            <section className="bg-[#020617] border border-white/10 rounded-xl p-3.5 space-y-2 h-44 overflow-hidden flex flex-col shadow-inner select-none font-mono text-[9px] leading-relaxed text-[#c3c5d7]">
+              <div className="flex items-center gap-1 text-[9.5px] font-bold text-[#b6c4ff] border-b border-white/5 pb-1 uppercase shrink-0">
+                <Terminal className="w-3 h-3 text-[#2a5ee8]" />
+                <span>COOPERATION_STREAM</span>
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+                {metrics.businessDNA ? (
+                  <>
+                    <p className="text-[#8d90a0]"><span className="text-[#a855f7] font-bold">[Científico]</span> ADN detectado: {metrics.businessDNA.industria}.</p>
+                    <p className="text-[#8d90a0]"><span className="text-[#2a5ee8] font-bold">[Orquestador]</span> Proceso: {metrics.businessDNA.procesoPrincipal}.</p>
+                    <p className="text-[#8d90a0]"><span className="text-[#eab308] font-bold">[Analítico]</span> KPIs: {metrics.businessDNA.subprocesos.slice(0, 2).join(", ")}.</p>
+                    <p className="text-[#8d90a0]"><span className="text-[#10b981] font-bold">[Ingeniería]</span> Indexadas: {metrics.businessDNA.entidadesPrincipales.join(", ")}.</p>
+                    <p className="font-semibold text-[#4edea3]">✓ Business DNA cargado en base de datos.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#2a5ee8] font-bold">[Orquestador]</span> Escaneando endpoints activos en InsForge...</p>
+                    <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#10b981] font-bold">[Data Eng]</span> Conector seguro establecido. PostgreSQL listado.</p>
+                    <p className="hover:text-white transition-colors duration-75 text-[#8d90a0]"><span className="text-[#a855f7] font-bold">[Científico]</span> Modelo deductivo listo. Calibración en espera.</p>
+                    <p className="hover:text-white transition-colors duration-75 text-[#8d90a0] font-semibold text-[#4edea3]">✓ Pipeline multi-agente 24/7 operando satisfactoriamente.</p>
+                  </>
+                )}
+              </div>
+            </section>
 
-        </div>
+          </div>
 
-        {/* Bottom export transcription option btn */}
-        <div className="p-4 border-t border-white/10 bg-white/1 bg-opacity-15 shrink-0">
-          <button 
-            type="button" 
-            onClick={triggerExportDetails}
-            className="w-full py-2.5 border border-white/10 rounded-lg text-xs hover:bg-white/5 transition-colors flex items-center justify-center gap-2 font-semibold text-[#dae2fd]"
-          >
-            <Download className="w-4 h-4" />
-            <span>Exportar Transcripción</span>
-          </button>
-        </div>
+          {/* Bottom export transcription option btn */}
+          <div className="p-4 border-t border-white/10 bg-white/1 bg-opacity-15 shrink-0">
+            <button 
+              type="button" 
+              onClick={triggerExportDetails}
+              className="w-full py-2.5 border border-white/10 rounded-lg text-xs hover:bg-white/5 transition-colors flex items-center justify-center gap-2 font-semibold text-[#dae2fd]"
+            >
+              <Download className="w-4 h-4" />
+              <span>Exportar Transcripción</span>
+            </button>
+          </div>
 
-      </aside>
+        </aside>
+      )}
 
       {/* Modal de Información Empresarial para Informe Ejecutivo */}
       {showCompanyModal && (

@@ -76,9 +76,9 @@ export default function App() {
     }
     return "chat";
   });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [apiConnected, setApiConnected] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Settings & Support premium UI states
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -762,10 +762,11 @@ Una vez cargados, podremos realizar limpiezas ETL en caliente, ver dashboards ej
         onRequestPermission={requestNotificationPermission}
         onTestNotification={triggerTestNotification}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        sidebarOpen={sidebarOpen}
       />
 
       {/* Responsive Workspace Grid */}
-      <main className="ml-0 lg:ml-[280px] pt-[72px] h-[calc(100vh-72px)] flex flex-col overflow-hidden">
+      <main className={`ml-0 ${sidebarOpen ? "lg:ml-[280px]" : "lg:ml-0"} pt-[72px] h-[calc(100vh-72px)] flex flex-col overflow-hidden transition-all duration-300`}>
         
         {activeView === "hub" && (
           <DataHubPanel 

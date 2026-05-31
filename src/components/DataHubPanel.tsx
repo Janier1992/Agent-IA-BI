@@ -116,6 +116,7 @@ export default function DataHubPanel({
   const [showUrlForm, setShowUrlForm] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [isIngestingUrl, setIsIngestingUrl] = useState(false);
+  const [showProfiler, setShowProfiler] = useState(true);
 
   const [connectors, setConnectors] = useState<DataConnector[]>([
     { id: "excel", name: "Microsoft Excel", description: "Carga universal de libros y reportes financieros (.xlsx)", icon: "excel", connected: false, premium: true, type: "Sheets" },
@@ -370,8 +371,24 @@ export default function DataHubPanel({
   return (
     <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-12 w-full">
       <div className="grid grid-cols-12 gap-6 max-w-[1600px] mx-auto">
-        {/* Left Ingestion Area & Connected Sources (8 columns) */}
-      <div className="col-span-12 xl:col-span-8 flex flex-col gap-6">
+        {/* Left Ingestion Area & Connected Sources */}
+      <div className={`col-span-12 ${showProfiler ? "xl:col-span-8" : "xl:col-span-12"} flex flex-col gap-6`}>
+        
+        {/* Toggle toolbar */}
+        <div className="flex justify-between items-center bg-[#131b2e]/30 p-3 border border-white/5 rounded-xl">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#b6c4ff] uppercase tracking-wider font-mono">
+            <Database className="w-4 h-4 text-[#4edea3]" />
+            <span>Consola de Ingestión Global</span>
+          </div>
+          <button 
+            onClick={() => setShowProfiler(!showProfiler)}
+            className="px-3.5 py-1.5 bg-[#050b14] hover:bg-[#10b981]/15 text-xs font-bold font-mono border border-[#10b981]/25 rounded-lg text-[#10b981] flex items-center gap-1.5 transition-all active:scale-95 duration-100 cursor-pointer"
+          >
+            <Cpu className="w-3.5 h-3.5" />
+            <span>{showProfiler ? "Ocultar Terminal" : "Mostrar Terminal"}</span>
+          </button>
+        </div>
+
         {/* Premium Onboarding Welcome Card */}
         <section className="relative p-6 rounded-2xl bg-gradient-to-r from-[#1d4ed8]/20 via-[#1e40af]/10 to-transparent border border-[#2a5ee8]/30 shadow-xl space-y-4 overflow-hidden animate-in fade-in duration-200 mt-2">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#4edea3]/5 rounded-full blur-2xl pointer-events-none"></div>
@@ -691,55 +708,57 @@ export default function DataHubPanel({
         </section>
       </div>
 
-      {/* Right Validation stream log column (4 columns) - Hacker Retro Green Terminal Layout */}
-      <div className="col-span-12 xl:col-span-4 self-start">
-        <section className="bg-[#050b14] rounded-xl border border-[#10b981]/25 flex flex-col h-[640px] sticky top-24 shadow-[0_0_25px_rgba(16,185,129,0.06)] relative overflow-hidden">
-          {/* Scanline CRT overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%] pointer-events-none opacity-45 z-10"></div>
-          
-          {/* Header */}
-          <div className="p-4 border-b border-[#10b981]/20 flex items-center justify-between bg-black/40 relative z-20">
-            <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-[#10b981]" />
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[#4edea3] font-mono">Terminal de Profiling</h3>
-            </div>
-            <div className="flex gap-1.5 items-center bg-[#10b981]/15 py-1 px-2.5 rounded-full border border-[#10b981]/30">
-              <span className="w-2 h-2 bg-[#10b981] rounded-full animate-ping"></span>
-              <span className="text-[9px] text-[#10b981] font-bold font-mono">PROFILER_ON</span>
-            </div>
-          </div>
-
-          {/* Scrolling Log Rows */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 font-mono text-[11px] text-[#34d399] select-none scrollbar-thin scrollbar-thumb-[#10b981]/20 scrollbar-track-transparent relative z-20">
-            {logs.map((log) => (
-              <div key={log.id} className="flex gap-3 items-start animate-fade-in hover:bg-[#10b981]/5 p-1 rounded duration-75 text-left">
-                <span className="text-[#059669] shrink-0">{log.time}</span>
-                <div className="flex-1 leading-relaxed">
-                  <span className={`font-extrabold mr-1.5 ${
-                    log.category === "Alerta" ? "text-amber-400" :
-                    log.category === "Integridad" ? "text-[#10b981]" :
-                    log.category === "Análisis" ? "text-[#6ee7b7]" : "text-[#059669]"
-                  }`}>
-                    [{log.category.toUpperCase()}]
-                  </span>
-                  <span>{log.message}</span>
-                </div>
+      {showProfiler && (
+        /* Right Validation stream log column (4 columns) - Hacker Retro Green Terminal Layout */
+        <div className="col-span-12 xl:col-span-4 self-start">
+          <section className="bg-[#050b14] rounded-xl border border-[#10b981]/25 flex flex-col h-[640px] sticky top-24 shadow-[0_0_25px_rgba(16,185,129,0.06)] relative overflow-hidden">
+            {/* Scanline CRT overlay */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%] pointer-events-none opacity-45 z-10"></div>
+            
+            {/* Header */}
+            <div className="p-4 border-b border-[#10b981]/20 flex items-center justify-between bg-black/40 relative z-20">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-[#10b981]" />
+                <h3 className="text-xs font-bold uppercase tracking-widest text-[#4edea3] font-mono">Terminal de Profiling</h3>
               </div>
-            ))}
-          </div>
+              <div className="flex gap-1.5 items-center bg-[#10b981]/15 py-1 px-2.5 rounded-full border border-[#10b981]/30">
+                <span className="w-2 h-2 bg-[#10b981] rounded-full animate-ping"></span>
+                <span className="text-[9px] text-[#10b981] font-bold font-mono">PROFILER_ON</span>
+              </div>
+            </div>
 
-          {/* Global ingestion progress gauge */}
-          <div className="p-4 bg-black/50 border-t border-[#10b981]/20 rounded-b-xl relative z-20">
-            <div className="flex items-center justify-between mb-2 text-xs font-semibold text-[#10b981] font-mono">
-              <span>PROFILING_PROGRESS</span>
-              <span className="text-[#4edea3]">100% SECURE</span>
+            {/* Scrolling Log Rows */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-3 font-mono text-[11px] text-[#34d399] select-none scrollbar-thin scrollbar-thumb-[#10b981]/20 scrollbar-track-transparent relative z-20">
+              {logs.map((log) => (
+                <div key={log.id} className="flex gap-3 items-start animate-fade-in hover:bg-[#10b981]/5 p-1 rounded duration-75 text-left">
+                  <span className="text-[#059669] shrink-0">{log.time}</span>
+                  <div className="flex-1 leading-relaxed">
+                    <span className={`font-extrabold mr-1.5 ${
+                      log.category === "Alerta" ? "text-amber-400" :
+                      log.category === "Integridad" ? "text-[#10b981]" :
+                      log.category === "Análisis" ? "text-[#6ee7b7]" : "text-[#059669]"
+                    }`}>
+                      [{log.category.toUpperCase()}]
+                    </span>
+                    <span>{log.message}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="w-full h-1 bg-[#06142e] rounded-full overflow-hidden border border-[#10b981]/20">
-              <div className="h-full bg-[#10b981] shadow-[0_0_8px_#10b981]" style={{ width: "100%" }}></div>
+
+            {/* Global ingestion progress gauge */}
+            <div className="p-4 bg-black/50 border-t border-[#10b981]/20 rounded-b-xl relative z-20">
+              <div className="flex items-center justify-between mb-2 text-xs font-semibold text-[#10b981] font-mono">
+                <span>PROFILING_PROGRESS</span>
+                <span className="text-[#4edea3]">100% SECURE</span>
+              </div>
+              <div className="w-full h-1 bg-[#06142e] rounded-full overflow-hidden border border-[#10b981]/20">
+                <div className="h-full bg-[#10b981] shadow-[0_0_8px_#10b981]" style={{ width: "100%" }}></div>
+              </div>
             </div>
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
+      )}
       </div>
     </div>
   );

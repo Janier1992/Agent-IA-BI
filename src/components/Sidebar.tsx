@@ -50,7 +50,7 @@ export default function Sidebar({
         ></div>
       )}
 
-      <aside className={`fixed left-0 top-0 h-full w-[280px] bg-[#0b1326]/80 backdrop-blur-xl border-r border-white/10 flex flex-col z-50 overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${
+      <aside className={`fixed left-0 top-0 h-full w-[280px] bg-[#0b1326]/80 backdrop-blur-xl border-r border-white/10 flex flex-col z-50 overflow-y-auto transition-transform duration-300 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
       {/* Brand logo */}
