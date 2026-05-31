@@ -71,7 +71,7 @@ export default function Sidebar({
       {/* Main navigation links */}
       <nav className="flex-1 px-3 mt-4 space-y-1">
         <button
-          onClick={() => { onViewChange("hub"); onCloseSidebar?.(); }}
+          onClick={() => { onViewChange("hub"); }}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded text-sm text-left font-medium transition-all ${
             activeView === "hub"
               ? "text-[#b6c4ff] bg-[#2d3449]/50 border-r-2 border-[#b6c4ff]"
@@ -83,7 +83,7 @@ export default function Sidebar({
         </button>
 
         <button
-          onClick={() => { onViewChange("etl"); onCloseSidebar?.(); }}
+          onClick={() => { onViewChange("etl"); }}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded text-sm text-left font-medium transition-all ${
             activeView === "etl"
               ? "text-[#b6c4ff] bg-[#2d3449]/50 border-r-2 border-[#b6c4ff]"
@@ -96,7 +96,7 @@ export default function Sidebar({
 
         {metrics?.businessDNA ? (
           <button
-            onClick={() => { onViewChange("dashboard"); onCloseSidebar?.(); }}
+            onClick={() => { onViewChange("dashboard"); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded text-sm text-left font-medium transition-all ${
               activeView === "dashboard"
                 ? "text-[#b6c4ff] bg-[#2d3449]/50 border-r-2 border-[#b6c4ff]"
@@ -122,7 +122,7 @@ export default function Sidebar({
         )}
 
         <button
-          onClick={() => { onViewChange("chat"); onCloseSidebar?.(); }}
+          onClick={() => { onViewChange("chat"); }}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded text-sm text-left font-medium transition-all ${
             activeView === "chat"
               ? "text-[#b6c4ff] bg-[#2d3449]/50 border-r-2 border-[#b6c4ff]"
@@ -136,7 +136,7 @@ export default function Sidebar({
 
       <div className="p-6 mt-auto space-y-6 border-t border-white/5">
         <button
-          onClick={() => { onNewQuery(); onCloseSidebar?.(); }}
+          onClick={() => { onNewQuery(); }}
           className="w-full py-3 px-4 bg-[#2a5ee8] text-[#e7eaff] rounded-lg text-xs font-bold hover:bg-[#2a5ee8]/90 transition-all duration-150 active:scale-95 uppercase tracking-wider flex items-center justify-center gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -146,14 +146,14 @@ export default function Sidebar({
         {/* Support & settings */}
         <div className="flex flex-col gap-2">
           <button 
-            onClick={() => { onOpenConfig?.(); onCloseSidebar?.(); }}
+            onClick={() => { onOpenConfig?.(); }}
             className="flex items-center gap-3 px-4 py-1.5 text-sm text-[#c3c5d7] hover:text-[#dae2fd] hover:bg-[#2d3449]/20 rounded-md transition-all text-left cursor-pointer active:scale-[0.98]"
           >
             <Settings className="w-4 h-4 text-inherit" />
             <span>Configuración</span>
           </button>
           <button 
-            onClick={() => { onOpenSupport?.(); onCloseSidebar?.(); }}
+            onClick={() => { onOpenSupport?.(); }}
             className="flex items-center gap-3 px-4 py-1.5 text-sm text-[#c3c5d7] hover:text-[#dae2fd] hover:bg-[#2d3449]/20 rounded-md transition-all text-left cursor-pointer active:scale-[0.98]"
           >
             <HelpCircle className="w-4 h-4 text-inherit" />
