@@ -691,33 +691,36 @@ export default function DataHubPanel({
         </section>
       </div>
 
-      {/* Right Validation stream log column (4 columns) */}
+      {/* Right Validation stream log column (4 columns) - Hacker Retro Green Terminal Layout */}
       <div className="col-span-12 xl:col-span-4 self-start">
-        <section className="bg-[#131b2e]/60 rounded-xl border border-white/10 flex flex-col h-[640px] sticky top-24">
+        <section className="bg-[#050b14] rounded-xl border border-[#10b981]/25 flex flex-col h-[640px] sticky top-24 shadow-[0_0_25px_rgba(16,185,129,0.06)] relative overflow-hidden">
+          {/* Scanline CRT overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%] pointer-events-none opacity-45 z-10"></div>
+          
           {/* Header */}
-          <div className="p-4 border-b border-white/10 flex items-center justify-between">
+          <div className="p-4 border-b border-[#10b981]/20 flex items-center justify-between bg-black/40 relative z-20">
             <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-[#4edea3]" />
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[#dae2fd]">Flujo de Validación</h3>
+              <Cpu className="w-4 h-4 text-[#10b981]" />
+              <h3 className="text-xs font-bold uppercase tracking-widest text-[#4edea3] font-mono">Terminal de Profiling</h3>
             </div>
-            <div className="flex gap-1.5 items-center bg-[#4edea3]/10 py-1 px-2.5 rounded-full border border-[#4edea3]/20">
-              <span className="w-2 h-2 bg-[#4edea3] rounded-full animate-pulse"></span>
-              <span className="text-[10px] text-[#4edea3] font-bold">AGENTE EN VIVO</span>
+            <div className="flex gap-1.5 items-center bg-[#10b981]/15 py-1 px-2.5 rounded-full border border-[#10b981]/30">
+              <span className="w-2 h-2 bg-[#10b981] rounded-full animate-ping"></span>
+              <span className="text-[9px] text-[#10b981] font-bold font-mono">PROFILER_ON</span>
             </div>
           </div>
 
           {/* Scrolling Log Rows */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 font-mono text-xs text-[#c3c5d7] select-none scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 font-mono text-[11px] text-[#34d399] select-none scrollbar-thin scrollbar-thumb-[#10b981]/20 scrollbar-track-transparent relative z-20">
             {logs.map((log) => (
-              <div key={log.id} className="flex gap-3 items-start animate-fade-in">
-                <span className="text-[#8d90a0] shrink-0">{log.time}</span>
-                <div className="flex-1">
-                  <span className={`font-bold mr-1.5 ${
-                    log.category === "Alerta" ? "text-[#ffb4ab]" :
-                    log.category === "Integridad" ? "text-[#4edea3]" :
-                    log.category === "Análisis" ? "text-[#b6c4ff]" : "text-[#8d90a0]"
+              <div key={log.id} className="flex gap-3 items-start animate-fade-in hover:bg-[#10b981]/5 p-1 rounded duration-75 text-left">
+                <span className="text-[#059669] shrink-0">{log.time}</span>
+                <div className="flex-1 leading-relaxed">
+                  <span className={`font-extrabold mr-1.5 ${
+                    log.category === "Alerta" ? "text-amber-400" :
+                    log.category === "Integridad" ? "text-[#10b981]" :
+                    log.category === "Análisis" ? "text-[#6ee7b7]" : "text-[#059669]"
                   }`}>
-                    [{log.category}]
+                    [{log.category.toUpperCase()}]
                   </span>
                   <span>{log.message}</span>
                 </div>
@@ -726,13 +729,13 @@ export default function DataHubPanel({
           </div>
 
           {/* Global ingestion progress gauge */}
-          <div className="p-4 bg-[#171f33]/70 border-t border-white/10 rounded-b-xl">
-            <div className="flex items-center justify-between mb-2 text-xs font-semibold">
-              <span className="text-[#c3c5d7]">Progreso del Ingestador</span>
-              <span className="text-[#4edea3]">98.4%</span>
+          <div className="p-4 bg-black/50 border-t border-[#10b981]/20 rounded-b-xl relative z-20">
+            <div className="flex items-center justify-between mb-2 text-xs font-semibold text-[#10b981] font-mono">
+              <span>PROFILING_PROGRESS</span>
+              <span className="text-[#4edea3]">100% SECURE</span>
             </div>
-            <div className="w-full h-1 bg-[#2d3449] rounded-full overflow-hidden">
-              <div className="h-full bg-[#4edea3]" style={{ width: "98.4%" }}></div>
+            <div className="w-full h-1 bg-[#06142e] rounded-full overflow-hidden border border-[#10b981]/20">
+              <div className="h-full bg-[#10b981] shadow-[0_0_8px_#10b981]" style={{ width: "100%" }}></div>
             </div>
           </div>
         </section>

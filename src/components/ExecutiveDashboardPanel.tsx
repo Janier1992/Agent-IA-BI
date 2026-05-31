@@ -198,14 +198,29 @@ export default function ExecutiveDashboardPanel({
         activeDataset: displayedDashboard.dataset || displayedDashboard.name,
         businessDNA: displayedDashboard.businessDNA || (metrics.activeDataset === displayedDashboard.dataset ? metrics.businessDNA : undefined)
       }
-    : {
-        revenue: metrics.revenue,
-        users: metrics.users,
-        riskScore: metrics.riskScore,
-        efficiency: metrics.efficiency,
-        activeDataset: metrics.activeDataset || "Ninguno",
-        businessDNA: metrics.businessDNA
-      };
+    : (metrics.activeDataset && metrics.activeDataset !== "Ninguno"
+      ? {
+          revenue: metrics.revenue,
+          users: metrics.users,
+          riskScore: metrics.riskScore,
+          efficiency: metrics.efficiency,
+          activeDataset: metrics.activeDataset,
+          businessDNA: metrics.businessDNA
+        }
+      : {
+          revenue: 14298000,
+          users: 82410,
+          riskScore: 12.4,
+          efficiency: 94.8,
+          activeDataset: "Calidad_Inspecciones_Planta_Bogota [DEMO]",
+          businessDNA: {
+            industria: "Manufactura de Autopartes",
+            procesoPrincipal: "Aseguramiento de Calidad de Soldadura Chasis",
+            subprocesos: ["Calibración de Varianza", "Control de Tolerancia Física", "Auditoría de Turnos"],
+            entidadesPrincipales: ["Soldaduras", "Muestras", "Inspectores"],
+            objetivosInferidos: ["Reducir mermas de acero chasis", "Incrementar PPM de conformidad de soldadura", "Auditar varianza de operarios de planta Bogotá"]
+          }
+        });
 
   const defaultAllocation = getDomainAllocation(displayMetrics.activeDataset, displayMetrics.businessDNA);
   
